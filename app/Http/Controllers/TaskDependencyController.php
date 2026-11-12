@@ -18,7 +18,7 @@ class TaskDependencyController extends Controller
      */
     public function store(Request $request, Task $task): RedirectResponse
     {
-        Gate::authorize('update', $task->taskList);
+        Gate::authorize('editTasks', $task->taskList);
 
         $dependsOnId = $request->validate([
             'depends_on_id' => [
@@ -46,7 +46,7 @@ class TaskDependencyController extends Controller
 
     public function destroy(Task $task, Task $dependsOn): RedirectResponse
     {
-        Gate::authorize('update', $task->taskList);
+        Gate::authorize('editTasks', $task->taskList);
 
         $task->dependencies()->detach($dependsOn->id);
 

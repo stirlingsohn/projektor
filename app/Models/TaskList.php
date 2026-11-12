@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Database\Factories\TaskListFactory;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -33,6 +35,18 @@ class TaskList extends Model
         'name',
         'position',
     ];
+
+    /**
+     * The lists a user may open: all of them for the owner, otherwise those
+     * in shared projects and those shared on their own.
+     */
+    #[Scope]
+    protected function visibleTo(Builder $query, User $user): void
+    {
+        $query->when(! $user->isOwner(), fn (Builder $query) => $query->where(fn (Builder $query) => $query
+            ->whereIn('project_id', array_keys($user->projectAccess()))
+            ->orWhereIn('id', array_keys($user->listAccess()))));
+    }
 
     protected static function booted(): void
     {

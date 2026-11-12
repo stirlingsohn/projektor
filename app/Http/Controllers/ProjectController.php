@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Attachment;
 use App\Models\Project;
+use App\Support\Sharing;
 use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,12 +20,21 @@ class ProjectController extends Controller
     {
         Gate::authorize('view', $project);
 
+        $user = $request->user();
+        $viewContents = $user->can('viewContents', $project);
+
         return Inertia::render('projects/Show', [
             'project' => $project->only('id', 'parent_id', 'name', 'color', 'client_can_see_time'),
-            'ancestors' => $project->ancestors()->map->only('id', 'name'),
-            'children' => $project->children->map->only('id', 'name', 'color'),
-            'attachments' => $project->attachments()->with('task:id,title')->get()->map->toView(),
-            'trackedSeconds' => $project->showsTimeTo($request->user()) ? $project->trackedSeconds() : null,
+            'ancestors' => $project->ancestors()->filter(fn (Project $ancestor) => $user->can('view', $ancestor))->values()->map->only('id', 'name'),
+            'children' => $project->children()->visibleTo($user)->get()->map->only('id', 'name', 'color'),
+            'attachments' => $viewContents ? $project->attachments()->with('task:id,title')->get()->map->toView() : [],
+            'trackedSeconds' => $viewContents && $project->showsTimeTo($user) ? $project->trackedSeconds() : null,
+            'can' => [
+                'manage' => $user->can('update', $project),
+                'contribute' => $user->can('contribute', $project),
+                'viewContents' => $viewContents,
+            ],
+            'sharing' => $user->can('update', $project) ? Sharing::of($project) : null,
         ]);
     }
 

@@ -6,22 +6,23 @@ use App\Models\Document;
 use App\Models\User;
 
 /**
- * Documents inherit the rights on their project.
+ * Documents can be read by everyone who sees the project's contents and
+ * edited by those who may contribute to it.
  */
 class DocumentPolicy
 {
-    public function view(User $user, Document $model): bool
+    public function view(User $user, Document $document): bool
     {
-        return $user->can('view', $model->project);
+        return $user->can('viewContents', $document->project);
     }
 
-    public function update(User $user, Document $model): bool
+    public function update(User $user, Document $document): bool
     {
-        return $user->can('update', $model->project);
+        return $user->can('contribute', $document->project);
     }
 
-    public function delete(User $user, Document $model): bool
+    public function delete(User $user, Document $document): bool
     {
-        return $user->can('update', $model->project);
+        return $user->isOwner();
     }
 }

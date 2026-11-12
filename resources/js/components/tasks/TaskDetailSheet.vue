@@ -3,11 +3,12 @@ import DateField from '@/components/DateField.vue';
 import AttachmentList from '@/components/files/AttachmentList.vue';
 import InputError from '@/components/InputError.vue';
 import SelectMenu from '@/components/SelectMenu.vue';
+import TaskComments from '@/components/tasks/TaskComments.vue';
 import TaskTimeSection from '@/components/tasks/TaskTimeSection.vue';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import type { Attachment, Status, Task, TimeEntry } from '@/types';
+import type { Attachment, Comment, Status, Task, TimeEntry } from '@/types';
 import { router } from '@inertiajs/vue3';
 import { Trash2, X } from 'lucide-vue-next';
 import { computed, nextTick, ref, watch } from 'vue';
@@ -24,6 +25,8 @@ const props = defineProps<{
     /** Files attached to tasks of the list. */
     attachments: Attachment[];
     projectId: number;
+    comments: Comment[];
+    canComment: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -60,6 +63,7 @@ watch(
 
 const statusOptions = computed(() => props.statuses.map((status) => ({ value: status.id, label: status.name, color: status.color })));
 
+const taskComments = computed(() => props.comments.filter((comment) => comment.task_id === props.task?.id));
 const taskAttachments = computed(() => props.attachments.filter((attachment) => attachment.task_id === props.task?.id));
 const taskEntries = computed(() => props.timeEntries.filter((entry) => entry.task_id === props.task?.id));
 
@@ -210,6 +214,8 @@ const destroy = () => {
                 <h3 class="text-sm font-medium">{{ $t('Files') }}</h3>
                 <AttachmentList :attachments="taskAttachments" :project-id="projectId" :task-id="task.id" :can-edit="canEdit" />
             </section>
+
+            <TaskComments v-if="task" :task-id="task.id" :comments="taskComments" :can-comment="canComment" />
 
             <div v-if="canEdit" class="flex justify-end">
                 <Button variant="ghost" size="sm" class="text-red-600 hover:text-red-600" @click="destroy">

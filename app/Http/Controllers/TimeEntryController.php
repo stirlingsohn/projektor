@@ -15,7 +15,7 @@ class TimeEntryController extends Controller
     /** Start the timer on a task, stopping any timer that is still running. */
     public function start(Request $request, Task $task): RedirectResponse
     {
-        Gate::authorize('update', $task->taskList);
+        Gate::authorize('editTasks', $task->taskList);
 
         DB::transaction(function () use ($request, $task) {
             $request->user()->timeEntries()->running()->lockForUpdate()->get()->each->stop();
@@ -35,7 +35,7 @@ class TimeEntryController extends Controller
     /** Add time by hand. */
     public function store(Request $request, Task $task): RedirectResponse
     {
-        Gate::authorize('update', $task->taskList);
+        Gate::authorize('editTasks', $task->taskList);
 
         $request->user()->timeEntries()->create([
             'task_id' => $task->id,

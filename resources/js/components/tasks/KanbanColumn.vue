@@ -4,6 +4,7 @@ import TaskQuickAdd from '@/components/tasks/TaskQuickAdd.vue';
 import TrackedTime from '@/components/tasks/TrackedTime.vue';
 import { useSortableList } from '@/lib/sortable';
 import type { Status, Task } from '@/types';
+import { MessageSquare } from 'lucide-vue-next';
 import { ref, useTemplateRef } from 'vue';
 
 const props = defineProps<{
@@ -69,6 +70,10 @@ if (props.canEdit) {
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-1 empty:hidden">
                     <DueDate :task="task" :done="status.is_done" />
                     <TrackedTime :task="task" />
+                    <span v-if="task.comments_count" class="inline-flex items-center gap-1 text-xs text-muted-foreground" :title="$t('Comments')">
+                        <MessageSquare class="size-3.5" />
+                        {{ task.comments_count }}
+                    </span>
                 </div>
             </li>
         </ul>

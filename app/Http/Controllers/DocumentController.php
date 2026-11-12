@@ -23,7 +23,7 @@ class DocumentController extends Controller
                 ...$document->only('id', 'project_id', 'title', 'content'),
                 'updated_at' => $document->updated_at->toJSON(),
             ],
-            'ancestors' => $project->ancestors()->push($project)->map->only('id', 'name'),
+            'ancestors' => $project->ancestors()->push($project)->filter(fn (Project $ancestor) => $request->user()->can('view', $ancestor))->values()->map->only('id', 'name'),
             'canEdit' => $request->user()->can('update', $document),
         ]);
     }
@@ -31,7 +31,7 @@ class DocumentController extends Controller
     /** Create an empty document and open it. */
     public function store(Project $project): RedirectResponse
     {
-        Gate::authorize('update', $project);
+        Gate::authorize('contribute', $project);
 
         $document = $project->documents()->create([
             'title' => __('Untitled document'),

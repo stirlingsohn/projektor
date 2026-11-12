@@ -16,7 +16,7 @@ class TaskController extends Controller
 {
     public function store(Request $request, TaskList $list): RedirectResponse
     {
-        Gate::authorize('update', $list);
+        Gate::authorize('editTasks', $list);
 
         $attributes = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -34,7 +34,7 @@ class TaskController extends Controller
 
     public function update(Request $request, Task $task): RedirectResponse
     {
-        Gate::authorize('update', $task->taskList);
+        Gate::authorize('editTasks', $task->taskList);
 
         $task->fill($request->validate([
             'title' => ['sometimes', 'required', 'string', 'max:255'],
@@ -61,7 +61,7 @@ class TaskController extends Controller
 
     public function destroy(Task $task): RedirectResponse
     {
-        Gate::authorize('update', $task->taskList);
+        Gate::authorize('editTasks', $task->taskList);
 
         $task->delete();
 
@@ -76,7 +76,7 @@ class TaskController extends Controller
      */
     public function move(Request $request, Task $task): RedirectResponse
     {
-        Gate::authorize('update', $task->taskList);
+        Gate::authorize('editTasks', $task->taskList);
 
         $sibling = Rule::exists('tasks', 'id')->where('task_list_id', $task->task_list_id);
         $attributes = $request->validate([

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attachment;
+use App\Models\Comment;
 use App\Models\Project;
 use App\Models\TaskList;
 use App\Models\TimeEntry;
+use App\Support\Sharing;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -20,17 +22,25 @@ class TaskListController extends Controller
 
         $project = $list->project;
         $showsTime = $project->showsTimeTo($request->user());
-        $tasks = $list->tasks()->with('dependencies:id')
+        $user = $request->user();
+        $tasks = $list->tasks()->with('dependencies:id')->withCount('comments')
             ->when($showsTime, fn ($query) => $query->withSum(['timeEntries as tracked_seconds' => fn ($entries) => $entries->finished()], 'seconds'))
             ->get();
 
         return Inertia::render('lists/Show', [
             'list' => $list->only('id', 'project_id', 'name'),
-            'ancestors' => $project->ancestors()->push($project)->map->only('id', 'name'),
+            'ancestors' => $project->ancestors()->push($project)->filter(fn (Project $ancestor) => $user->can('view', $ancestor))->values()->map->only('id', 'name'),
             'statuses' => $list->statuses->map->only('id', 'name', 'color', 'is_done'),
             'tasks' => $tasks->map->toView(),
             'showsTime' => $showsTime,
             'attachments' => Attachment::whereIn('task_id', $tasks->modelKeys())->latest()->get()->map->toView(),
+            'comments' => Comment::whereIn('task_id', $tasks->modelKeys())->with('user:id,name')->oldest()->get()->map->toView(),
+            'can' => [
+                'manage' => $user->can('update', $list),
+                'editTasks' => $user->can('editTasks', $list),
+                'comment' => $user->can('comment', $list),
+            ],
+            'sharing' => $user->can('update', $list) ? Sharing::of($list) : null,
             'timeEntries' => $showsTime
                 ? TimeEntry::finished()->whereIn('task_id', $tasks->modelKeys())->with('user:id,name')->latest('started_at')->get()->map->toView()
                 : [],

@@ -76,13 +76,13 @@ class HandleInertiaRequests extends Middleware
                     ->get(['id', 'parent_id', 'name', 'color', 'client_can_see_time'])
                 : [],
             'documents' => fn () => $user
-                ? Document::whereHas('project', fn (Builder $query) => $query->visibleTo($user))
+                ? Document::when(! $user->isOwner(), fn (Builder $query) => $query->whereIn('project_id', array_keys($user->projectAccess())))
                     ->orderBy('position')
                     ->get(['id', 'project_id', 'title'])
                 : [],
             'maxUploadMb' => config('projektor.max_upload_mb'),
             'lists' => fn () => $user
-                ? TaskList::whereHas('project', fn (Builder $query) => $query->visibleTo($user))
+                ? TaskList::visibleTo($user)
                     ->orderBy('position')
                     ->get(['id', 'project_id', 'name'])
                 : [],

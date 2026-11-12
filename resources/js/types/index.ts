@@ -49,6 +49,25 @@ export interface Attachment {
     created_at: string;
 }
 
+export type AccessLevel = 'view' | 'comment' | 'edit';
+
+export interface Sharing {
+    members: { id: number; name: string; email: string; level: AccessLevel }[];
+    /** Access that comes from a project further up. */
+    inherited: { id: number; name: string; email: string; level: AccessLevel; source: string; source_id: number }[];
+    invitations: { id: number; email: string; level: AccessLevel; expires_at: string }[];
+}
+
+export interface Comment {
+    id: number;
+    task_id: number;
+    user_id: number | null;
+    user: string | null;
+    body: string;
+    created_at: string;
+    edited: boolean;
+}
+
 export interface Status {
     id: number;
     name: string;
@@ -68,6 +87,7 @@ export interface Task {
     depends_on: number[];
     /** Seconds on finished time entries; `null` when the viewer may not see time. */
     tracked_seconds: number | null;
+    comments_count: number;
 }
 
 export interface TimeEntry {

@@ -24,8 +24,6 @@ class AttachmentController extends Controller
 
     public function store(Request $request, Project $project): RedirectResponse
     {
-        Gate::authorize('update', $project);
-
         $validated = $request->validate([
             'files' => ['required', 'array', 'max:20'],
             'files.*' => ['file', 'max:'.config('projektor.max_upload_mb') * 1024],
@@ -34,6 +32,9 @@ class AttachmentController extends Controller
                 Rule::exists(Task::class, 'id')->whereIn('task_list_id', $project->taskLists()->pluck('id')),
             ],
         ]);
+
+        $task = isset($validated['task_id']) ? Task::find($validated['task_id']) : null;
+        Gate::authorize(...($task ? ['editTasks', $task->taskList] : ['contribute', $project]));
 
         foreach ($validated['files'] as $file) {
             $project->attachments()->create([

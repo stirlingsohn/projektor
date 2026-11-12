@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\AttachmentController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\TaskController;
@@ -13,7 +16,19 @@ use Inertia\Inertia;
 
 Route::redirect('/', '/dashboard')->name('home');
 
+// The link in invitation emails works with and without being signed in.
+Route::get('invite/{token}', [InvitationController::class, 'show'])->name('invitations.show');
+Route::post('invite/{token}', [InvitationController::class, 'store'])->middleware(['guest', 'throttle:10,1'])->name('invitations.store');
+
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('projects/{project}/members', [MemberController::class, 'storeForProject'])->name('projects.members.store');
+    Route::post('lists/{list}/members', [MemberController::class, 'storeForList'])->name('lists.members.store');
+    Route::resource('memberships', MemberController::class)->only(['update', 'destroy']);
+    Route::post('invitations/{invitation}/resend', [InvitationController::class, 'resend'])->name('invitations.resend');
+    Route::delete('invitations/{invitation}', [InvitationController::class, 'destroy'])->name('invitations.destroy');
+    Route::post('tasks/{task}/comments', [CommentController::class, 'store'])->name('tasks.comments.store');
+    Route::resource('comments', CommentController::class)->only(['update', 'destroy']);
+
     Route::get('dashboard', function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');

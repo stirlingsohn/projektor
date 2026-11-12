@@ -6,22 +6,25 @@ use App\Models\Attachment;
 use App\Models\User;
 
 /**
- * Files inherit the rights on their project.
+ * Files can be seen with the project's contents, or with their task's list
+ * when only that list is shared. Clients may delete files they uploaded.
  */
 class AttachmentPolicy
 {
-    public function view(User $user, Attachment $model): bool
+    public function view(User $user, Attachment $attachment): bool
     {
-        return $user->can('view', $model->project);
+        return $user->can('viewContents', $attachment->project)
+            || ($attachment->task !== null && $user->can('view', $attachment->task->taskList));
     }
 
-    public function update(User $user, Attachment $model): bool
+    public function delete(User $user, Attachment $attachment): bool
     {
-        return $user->can('update', $model->project);
-    }
+        if ($user->isOwner()) {
+            return true;
+        }
 
-    public function delete(User $user, Attachment $model): bool
-    {
-        return $user->can('update', $model->project);
+        return $attachment->user_id === $user->id && ($attachment->task
+            ? $user->can('editTasks', $attachment->task->taskList)
+            : $user->can('contribute', $attachment->project));
     }
 }

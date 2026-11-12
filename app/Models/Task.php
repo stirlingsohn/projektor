@@ -154,6 +154,14 @@ class Task extends Model
         return $this->hasMany(TimeEntry::class)->latest('started_at');
     }
 
+    /**
+     * @return HasMany<Comment, $this>
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class)->oldest();
+    }
+
     public function toView(): array
     {
         return [
@@ -166,6 +174,7 @@ class Task extends Model
             'completed_at' => $this->completed_at?->toJSON(),
             'depends_on' => $this->dependencies->pluck('id'),
             // Only present when loaded with `withSum`, i.e. when the viewer may see time.
+            'comments_count' => (int) ($this->comments_count ?? 0),
             'tracked_seconds' => array_key_exists('tracked_seconds', $this->getAttributes()) ? (int) $this->tracked_seconds : null,
         ];
     }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ShareDialog from '@/components/sharing/ShareDialog.vue';
 import GanttChart from '@/components/tasks/GanttChart.vue';
 import KanbanBoard from '@/components/tasks/KanbanBoard.vue';
 import ListView from '@/components/tasks/ListView.vue';
@@ -11,10 +12,10 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { t } from '@/lib/i18n';
 import { editList, expandProjects } from '@/lib/projects';
 import { formatDuration } from '@/lib/time';
-import type { Attachment, BreadcrumbItem, ListSummary, SharedData, Status, Task, TimeEntry } from '@/types';
-import { Head, router, usePage } from '@inertiajs/vue3';
+import type { Attachment, BreadcrumbItem, Comment, ListSummary, Sharing, Status, Task, TimeEntry } from '@/types';
+import { Head, router } from '@inertiajs/vue3';
 import { useStorage } from '@vueuse/core';
-import { Clock, Columns3, GanttChartSquare, List, ListChecks, MoreHorizontal, Pencil, Trash2 } from 'lucide-vue-next';
+import { Clock, Columns3, GanttChartSquare, List, ListChecks, MoreHorizontal, Pencil, Trash2, Users } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 
 const props = defineProps<{
@@ -25,10 +26,13 @@ const props = defineProps<{
     showsTime: boolean;
     timeEntries: TimeEntry[];
     attachments: Attachment[];
+    comments: Comment[];
+    can: { manage: boolean; editTasks: boolean; comment: boolean };
+    sharing: Sharing | null;
 }>();
 
-const page = usePage<SharedData>();
-const canEdit = computed(() => page.props.auth.user.role === 'owner');
+const canEdit = computed(() => props.can.editTasks);
+const shareOpen = ref(false);
 
 const breadcrumbs = computed<BreadcrumbItem[]>(() => [
     { title: t('Overview'), href: route('dashboard') },
@@ -94,7 +98,11 @@ const deleteList = () => router.delete(route('lists.destroy', props.list.id));
                         </button>
                     </div>
 
-                    <DropdownMenu v-if="canEdit">
+                    <Button v-if="sharing" variant="outline" size="sm" @click="shareOpen = true">
+                        <Users class="size-4" />
+                        {{ $t('Share') }}
+                    </Button>
+                    <DropdownMenu v-if="can.manage">
                         <DropdownMenuTrigger as-child>
                             <Button variant="ghost" size="icon" :aria-label="$t('List actions')">
                                 <MoreHorizontal class="size-5" />
@@ -156,8 +164,11 @@ const deleteList = () => router.delete(route('lists.destroy', props.list.id));
             :shows-time="showsTime"
             :attachments="attachments"
             :project-id="list.project_id"
+            :comments="comments"
+            :can-comment="can.comment"
             @close="selectedTaskId = null"
         />
+        <ShareDialog v-if="sharing" v-model:open="shareOpen" :target="{ type: 'list', id: list.id, name: list.name }" :sharing="sharing" />
         <StatusSettingsDialog v-model:open="statusSettingsOpen" :list-id="list.id" :statuses="statuses" />
 
         <Dialog v-model:open="confirmDelete">

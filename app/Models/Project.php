@@ -71,7 +71,20 @@ class Project extends Model
     #[Scope]
     protected function visibleTo(Builder $query, User $user): void
     {
-        $query->when(! $user->isOwner(), fn (Builder $query) => $query->whereRaw('1 = 0'));
+        $query->when(! $user->isOwner(), fn (Builder $query) => $query->whereIn('id', self::visibleIdsFor($user)));
+    }
+
+    /**
+     * Projects a client sees: those shared with them, with all subprojects,
+     * and those holding a list that was shared with them on its own.
+     *
+     * @return list<int>
+     */
+    public static function visibleIdsFor(User $user): array
+    {
+        return collect(array_keys($user->projectAccess()))
+            ->merge(TaskList::whereKey(array_keys($user->listAccess()))->pluck('project_id'))
+            ->unique()->values()->all();
     }
 
     /**

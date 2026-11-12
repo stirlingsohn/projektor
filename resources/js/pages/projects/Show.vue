@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import AttachmentList from '@/components/files/AttachmentList.vue';
 import ProjectGrid from '@/components/projects/ProjectGrid.vue';
+import ShareDialog from '@/components/sharing/ShareDialog.vue';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { t } from '@/lib/i18n';
 import { createDocument, createList, createProject, deleteProject, editProject } from '@/lib/projects';
 import { formatDuration } from '@/lib/time';
-import { type Attachment, type BreadcrumbItem, type ProjectSummary, type SharedData } from '@/types';
+import { type Attachment, type BreadcrumbItem, type ProjectSummary, type SharedData, type Sharing } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { Clock, FilePlus, FileText, Folder, FolderPlus, ListPlus, ListTodo, Pencil, Trash2 } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { Clock, FilePlus, FileText, Folder, FolderPlus, ListPlus, ListTodo, Pencil, Trash2, Users } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
     project: ProjectSummary;
@@ -18,10 +19,13 @@ const props = defineProps<{
     /** Seconds tracked in this project and its subprojects; `null` when hidden. */
     trackedSeconds: number | null;
     attachments: Attachment[];
+    can: { manage: boolean; contribute: boolean; viewContents: boolean };
+    sharing: Sharing | null;
 }>();
 
 const page = usePage<SharedData>();
-const isOwner = computed(() => page.props.auth.user.role === 'owner');
+const isOwner = computed(() => props.can.manage);
+const shareOpen = ref(false);
 const lists = computed(() => page.props.lists.filter((list) => list.project_id === props.project.id));
 const documents = computed(() => page.props.documents.filter((document) => document.project_id === props.project.id));
 
@@ -47,6 +51,10 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => [
                     {{ formatDuration(trackedSeconds) }}
                 </span>
                 <div v-if="isOwner" class="ml-auto flex gap-2">
+                    <Button variant="outline" size="sm" @click="shareOpen = true">
+                        <Users class="size-4" />
+                        {{ $t('Share') }}
+                    </Button>
                     <Button variant="outline" size="sm" @click="editProject(project)">
                         <Pencil class="size-4" />
                         {{ $t('Edit') }}
@@ -80,10 +88,10 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => [
                 <p v-else class="text-sm text-muted-foreground">{{ $t('No lists yet.') }}</p>
             </section>
 
-            <section class="space-y-3">
+            <section v-if="can.viewContents" class="space-y-3">
                 <div class="flex items-center justify-between gap-4">
                     <h2 class="font-medium">{{ $t('Documents') }}</h2>
-                    <Button v-if="isOwner" variant="ghost" size="sm" @click="createDocument(project.id)">
+                    <Button v-if="can.contribute" variant="ghost" size="sm" @click="createDocument(project.id)">
                         <FilePlus class="size-4" />
                         {{ $t('New document') }}
                     </Button>
@@ -102,7 +110,7 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => [
                 <p v-else class="text-sm text-muted-foreground">{{ $t('No documents yet.') }}</p>
             </section>
 
-            <section class="space-y-3">
+            <section v-if="isOwner || children.length" class="space-y-3">
                 <div class="flex items-center justify-between gap-4">
                     <h2 class="font-medium">{{ $t('Subprojects') }}</h2>
                     <Button v-if="isOwner" variant="ghost" size="sm" @click="createProject(project.id)">
@@ -114,10 +122,11 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => [
                 <p v-else class="text-sm text-muted-foreground">{{ $t('No subprojects.') }}</p>
             </section>
 
-            <section class="space-y-3">
+            <section v-if="can.viewContents" class="space-y-3">
                 <h2 class="font-medium">{{ $t('Files') }}</h2>
-                <AttachmentList :attachments="attachments" :project-id="project.id" :can-edit="isOwner" show-task />
+                <AttachmentList :attachments="attachments" :project-id="project.id" :can-edit="can.contribute" show-task />
             </section>
         </div>
+        <ShareDialog v-if="sharing" v-model:open="shareOpen" :target="{ type: 'project', id: project.id, name: project.name }" :sharing="sharing" />
     </AppLayout>
 </template>

@@ -13,7 +13,7 @@ class TimeEntryPolicy
 {
     public function update(User $user, TimeEntry $timeEntry): bool
     {
-        return $user->can('update', $timeEntry->task->taskList)
+        return $user->can('editTasks', $timeEntry->task->taskList)
             && ($timeEntry->user_id === $user->id || $user->isOwner());
     }
 

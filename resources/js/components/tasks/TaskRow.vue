@@ -3,7 +3,7 @@ import DueDate from '@/components/tasks/DueDate.vue';
 import StatusBadge from '@/components/tasks/StatusBadge.vue';
 import TrackedTime from '@/components/tasks/TrackedTime.vue';
 import type { Status, Task } from '@/types';
-import { Check, GripVertical } from 'lucide-vue-next';
+import { Check, GripVertical, MessageSquare } from 'lucide-vue-next';
 defineProps<{
     task: Task;
     status: Status;
@@ -51,6 +51,10 @@ defineEmits<{
 
         <span class="min-w-0 flex-1 truncate text-sm" :class="{ 'text-muted-foreground line-through': status.is_done }">
             {{ task.title }}
+        </span>
+        <span v-if="task.comments_count" class="inline-flex shrink-0 items-center gap-1 text-xs text-muted-foreground" :title="$t('Comments')">
+            <MessageSquare class="size-3.5" />
+            {{ task.comments_count }}
         </span>
 
         <span v-if="showsTime" class="hidden w-20 shrink-0 justify-end sm:flex"><TrackedTime :task="task" /></span>
