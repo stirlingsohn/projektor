@@ -10,7 +10,7 @@ set -euo pipefail
 
 HOST="${DEPLOY_HOST:-jifetaje@s120.cyon.net}"
 APP_DIR="${DEPLOY_DIR:-projektor}"
-PHP="/usr/local/bin/php84"
+PHP="/opt/alt/php84/usr/bin/php"
 
 cd "$(dirname "$0")"
 
