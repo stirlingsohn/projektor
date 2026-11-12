@@ -135,6 +135,17 @@ class InvitationTest extends TestCase
         $this->assertModelMissing($membership);
     }
 
+    public function test_a_failing_mail_server_shows_an_error_instead_of_crashing()
+    {
+        config(['mail.default' => 'smtp', 'mail.mailers.smtp.host' => '127.0.0.1', 'mail.mailers.smtp.port' => 1, 'mail.mailers.smtp.timeout' => 1]);
+
+        $this->actingAs(User::factory()->create())
+            ->post(route('projects.members.store', Project::factory()->create()), ['email' => 'kunde@example.com', 'level' => 'view'])
+            ->assertSessionHasErrors('email');
+
+        $this->assertSame(1, Invitation::count());
+    }
+
     public function test_revoked_invitations_no_longer_work()
     {
         $token = $this->invite(Project::factory()->create());

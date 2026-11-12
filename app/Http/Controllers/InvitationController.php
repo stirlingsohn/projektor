@@ -8,6 +8,7 @@ use App\Models\Membership;
 use App\Models\Project;
 use App\Models\User;
 use App\Notifications\InvitedNotification;
+use App\Support\Mailing;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -96,7 +97,7 @@ class InvitationController extends Controller
         Gate::authorize('update', $invitation->target());
 
         $invitation->update(['invited_by' => $request->user()->id]);
-        Notification::route('mail', $invitation->email)->notify(new InvitedNotification($invitation, $invitation->renewToken()));
+        Mailing::send(fn () => Notification::route('mail', $invitation->email)->notify(new InvitedNotification($invitation, $invitation->renewToken())));
 
         return back();
     }

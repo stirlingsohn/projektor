@@ -37,7 +37,8 @@ const invite = () =>
 
 const changeLevel = (membershipId: number, level: AccessLevel) => router.patch(route('memberships.update', membershipId), { level }, background);
 const remove = (membershipId: number) => router.delete(route('memberships.destroy', membershipId), background);
-const resend = (invitationId: number) => router.post(route('invitations.resend', invitationId), {}, background);
+const resend = (invitationId: number) =>
+    router.post(route('invitations.resend', invitationId), {}, { ...background, onError: (errors) => form.setError('email', errors.email) });
 const revoke = (invitationId: number) => router.delete(route('invitations.destroy', invitationId), background);
 
 const initials = (name: string) =>

@@ -10,6 +10,7 @@ use App\Models\TaskList;
 use App\Models\User;
 use App\Notifications\AccessGrantedNotification;
 use App\Notifications\InvitedNotification;
+use App\Support\Mailing;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -71,7 +72,7 @@ class MemberController extends Controller
 
         if ($user) {
             Membership::updateOrCreate(['user_id' => $user->id, $column => $target->id], ['level' => $level]);
-            $user->notify(new AccessGrantedNotification($target, $level, $request->user()));
+            Mailing::send(fn () => $user->notify(new AccessGrantedNotification($target, $level, $request->user())));
 
             return back();
         }
@@ -79,7 +80,7 @@ class MemberController extends Controller
         $invitation = Invitation::whereNull('accepted_at')->firstOrNew(['email' => $email, $column => $target->id]);
         $invitation->fill(['level' => $level, 'invited_by' => $request->user()->id]);
         $token = $invitation->renewToken();
-        Notification::route('mail', $email)->notify(new InvitedNotification($invitation, $token));
+        Mailing::send(fn () => Notification::route('mail', $email)->notify(new InvitedNotification($invitation, $token)));
 
         return back();
     }

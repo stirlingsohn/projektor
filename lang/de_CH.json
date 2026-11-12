@@ -394,6 +394,7 @@
     "Team deleted.": "Team deleted.",
     "Team updated.": "Team updated.",
     "Temporary Redirect": "Temporäre Weiterleitung",
+    "The email could not be sent. Please try again later.": "Die E-Mail konnte nicht gesendet werden. Bitte versuchen Sie es später erneut.",
     "The end date must not be before the start date.": "Das Enddatum darf nicht vor dem Startdatum liegen.",
     "The given data was invalid.": "Die gegebenen Daten waren ungültig.",
     "The invitation is valid for :days days. If you were not expecting it, you can ignore this email.": "Die Einladung ist :days Tage gültig. Falls Sie sie nicht erwartet haben, können Sie diese E-Mail ignorieren.",
