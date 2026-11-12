@@ -16,10 +16,87 @@ export interface NavItem {
     isActive?: boolean;
 }
 
+export interface ProjectSummary {
+    id: number;
+    parent_id: number | null;
+    name: string;
+    color: string;
+    client_can_see_time: boolean;
+}
+
+export interface ListSummary {
+    id: number;
+    project_id: number;
+    name: string;
+}
+
+export interface DocumentSummary {
+    id: number;
+    project_id: number;
+    title: string;
+}
+
+export interface Attachment {
+    id: number;
+    task_id: number | null;
+    task_title: string | null;
+    name: string;
+    size: number;
+    mime_type: string;
+    /** Shows the file in the browser where that is safe. */
+    url: string;
+    download_url: string;
+    created_at: string;
+}
+
+export interface Status {
+    id: number;
+    name: string;
+    color: string;
+    is_done: boolean;
+}
+
+export interface Task {
+    id: number;
+    status_id: number;
+    title: string;
+    description: string | null;
+    start_date: string | null;
+    due_date: string | null;
+    completed_at: string | null;
+    /** IDs of the tasks that must be finished before this one can start. */
+    depends_on: number[];
+    /** Seconds on finished time entries; `null` when the viewer may not see time. */
+    tracked_seconds: number | null;
+}
+
+export interface TimeEntry {
+    id: number;
+    task_id: number;
+    user: string;
+    /** The day the time was spent, `YYYY-MM-DD`. */
+    date: string;
+    seconds: number;
+    note: string | null;
+}
+
+export interface RunningTimer {
+    id: number;
+    task_id: number;
+    task_title: string;
+    list_id: number;
+    started_at: string;
+}
+
 export interface SharedData {
     name: string;
-    quote: { message: string; author: string };
     auth: Auth;
+    translations: Record<string, string>;
+    timer: RunningTimer | null;
+    projects: ProjectSummary[];
+    lists: ListSummary[];
+    documents: DocumentSummary[];
+    maxUploadMb: number;
     ziggy: {
         location: string;
         url: string;
@@ -34,6 +111,7 @@ export interface User {
     name: string;
     email: string;
     avatar?: string;
+    role: 'owner' | 'client';
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "projektor",
+      "runtimeExecutable": "php",
+      "runtimeArgs": [
+        "-d", "upload_max_filesize=110M",
+        "-d", "post_max_size=120M",
+        "-S", "127.0.0.1:8000",
+        "-t", "public",
+        ".claude/dev-server.php"
+      ],
+      "port": 8000
+    }
+  ]
+}

@@ -6,6 +6,13 @@ import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { initializeTheme } from './composables/useAppearance';
+import { t } from './lib/i18n';
+
+declare module 'vue' {
+    interface ComponentCustomProperties {
+        $t: typeof t;
+    }
+}
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -20,16 +27,17 @@ declare module 'vite/client' {
     }
 }
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'Projektor';
 
 createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
+    title: (title) => (title ? `${title} – ${appName}` : appName),
     resolve: (name) => resolvePageComponent(`./pages/${name}.vue`, import.meta.glob<DefineComponent>('./pages/**/*.vue')),
     setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(App, props) })
+        const app = createApp({ render: () => h(App, props) })
             .use(plugin)
-            .use(ZiggyVue)
-            .mount(el);
+            .use(ZiggyVue);
+        app.config.globalProperties.$t = t;
+        app.mount(el);
     },
     progress: {
         color: '#4B5563',

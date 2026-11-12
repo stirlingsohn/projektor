@@ -12,7 +12,8 @@ const className = computed(() => props.class);
 </script>
 
 <template>
-    <SidebarInset v-if="props.variant === 'sidebar'" :class="className">
+    <!-- `min-w-0` keeps wide content such as the Kanban board scrolling inside the page. -->
+    <SidebarInset v-if="props.variant === 'sidebar'" class="min-w-0" :class="className">
         <slot />
     </SidebarInset>
     <main v-else class="mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4 rounded-xl" :class="className">

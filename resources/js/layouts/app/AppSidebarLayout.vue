@@ -3,6 +3,9 @@ import AppContent from '@/components/AppContent.vue';
 import AppShell from '@/components/AppShell.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 import AppSidebarHeader from '@/components/AppSidebarHeader.vue';
+import DeleteProjectDialog from '@/components/projects/DeleteProjectDialog.vue';
+import ListDialog from '@/components/projects/ListDialog.vue';
+import ProjectDialog from '@/components/projects/ProjectDialog.vue';
 import type { BreadcrumbItemType } from '@/types';
 
 interface Props {
@@ -21,5 +24,8 @@ withDefaults(defineProps<Props>(), {
             <AppSidebarHeader :breadcrumbs="breadcrumbs" />
             <slot />
         </AppContent>
+        <ProjectDialog />
+        <DeleteProjectDialog />
+        <ListDialog />
     </AppShell>
 </template>

@@ -4,7 +4,8 @@
 
 body,
 html {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans:
+        'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
 @layer base {
@@ -87,5 +88,118 @@ html {
 
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+@layer utilities {
+    /* Keeps the scrollbar visible on systems that hide it until scrolling, such as macOS. */
+    .scrollbar-visible::-webkit-scrollbar {
+        height: 10px;
+        width: 10px;
+    }
+
+    .scrollbar-visible::-webkit-scrollbar-thumb {
+        @apply rounded-full border-2 border-solid border-transparent bg-foreground/20 bg-clip-padding hover:bg-foreground/30;
+    }
+
+    .scrollbar-visible::-webkit-scrollbar-track {
+        @apply bg-transparent;
+    }
+
+    @supports not selector(::-webkit-scrollbar) {
+        .scrollbar-visible {
+            scrollbar-width: thin;
+        }
+    }
+}
+
+@layer components {
+    /* Typography for documents written with Tiptap. */
+    .rich-text .tiptap {
+        @apply min-h-[50vh] text-[15px] leading-7 outline-none;
+    }
+
+    .rich-text .tiptap > * + * {
+        @apply mt-3;
+    }
+
+    .rich-text .tiptap h1 {
+        @apply mt-8 text-2xl font-semibold tracking-tight;
+    }
+
+    .rich-text .tiptap h2 {
+        @apply mt-6 text-xl font-semibold tracking-tight;
+    }
+
+    .rich-text .tiptap h3 {
+        @apply mt-5 text-lg font-semibold;
+    }
+
+    .rich-text .tiptap :is(h1, h2, h3):first-child {
+        @apply mt-0;
+    }
+
+    .rich-text .tiptap ul {
+        @apply list-disc pl-6;
+    }
+
+    .rich-text .tiptap ol {
+        @apply list-decimal pl-6;
+    }
+
+    .rich-text .tiptap li > p {
+        @apply my-0;
+    }
+
+    .rich-text .tiptap ul[data-type='taskList'] {
+        @apply list-none pl-1;
+    }
+
+    .rich-text .tiptap ul[data-type='taskList'] li {
+        @apply flex items-start gap-2;
+    }
+
+    .rich-text .tiptap ul[data-type='taskList'] li > label {
+        @apply mt-[5px] flex shrink-0;
+    }
+
+    .rich-text .tiptap ul[data-type='taskList'] li > label input {
+        @apply size-4 accent-foreground;
+    }
+
+    .rich-text .tiptap ul[data-type='taskList'] li > div {
+        @apply min-w-0 flex-1;
+    }
+
+    .rich-text .tiptap ul[data-type='taskList'] li[data-checked='true'] > div {
+        @apply text-muted-foreground line-through;
+    }
+
+    .rich-text .tiptap blockquote {
+        @apply border-l-2 border-foreground/20 pl-4 text-muted-foreground;
+    }
+
+    .rich-text .tiptap code {
+        @apply rounded bg-muted px-1 py-0.5 font-mono text-[0.9em];
+    }
+
+    .rich-text .tiptap pre {
+        @apply overflow-x-auto rounded-md bg-muted p-3 font-mono text-sm;
+    }
+
+    .rich-text .tiptap pre code {
+        @apply bg-transparent p-0;
+    }
+
+    .rich-text .tiptap a {
+        @apply text-blue-600 underline underline-offset-2 dark:text-blue-400;
+    }
+
+    .rich-text .tiptap hr {
+        @apply my-6 border-sidebar-border;
+    }
+
+    .rich-text .tiptap p.is-editor-empty:first-child::before {
+        @apply pointer-events-none float-left h-0 text-muted-foreground content-[attr(data-placeholder)];
     }
 }
