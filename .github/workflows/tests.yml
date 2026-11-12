@@ -14,6 +14,28 @@ jobs:
   ci:
     runs-on: ubuntu-latest
 
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_DATABASE: projektor_test
+          MARIADB_USER: projektor
+          MARIADB_PASSWORD: projektor
+          MARIADB_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USERNAME: projektor
+      DB_PASSWORD: projektor
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,9 +55,6 @@ jobs:
 
       - name: Install Node Dependencies
         run: npm ci
-
-      - name: Create SQLite Database
-        run: touch database/database.sqlite
 
       - name: Install Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
