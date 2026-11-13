@@ -6,6 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
+import { useBranding } from '@/lib/branding';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 
@@ -14,6 +15,8 @@ defineProps<{
     canResetPassword: boolean;
     canRegister: boolean;
 }>();
+
+const branding = useBranding();
 
 const form = useForm({
     email: '',
@@ -29,7 +32,7 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthBase :title="$t('Log in to your account')" :description="$t('Enter your email and password below to log in')">
+    <AuthBase :title="$t('Log in to :name', { name: branding.name })" :description="$t('Enter your email and password below to log in')">
         <Head :title="$t('Log in')" />
 
         <div v-if="status" class="mb-4 text-center text-sm font-medium text-green-600">

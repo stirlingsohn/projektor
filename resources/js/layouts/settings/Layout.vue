@@ -3,8 +3,8 @@ import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { t } from '@/lib/i18n';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
+import { type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/vue3';
 
 const sidebarNavItems: NavItem[] = [
     {
@@ -20,6 +20,11 @@ const sidebarNavItems: NavItem[] = [
         href: '/settings/appearance',
     },
 ];
+
+// Only the owner sets the company name and logo.
+if (usePage<SharedData>().props.auth.user?.role === 'owner') {
+    sidebarNavItems.push({ title: t('Branding'), href: '/settings/branding' });
+}
 
 const currentPath = window.location.pathname;
 </script>

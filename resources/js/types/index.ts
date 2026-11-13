@@ -126,6 +126,7 @@ export interface RunningTimer {
 
 export interface SharedData {
     name: string;
+    branding: { name: string; logoUrl: string | null };
     auth: Auth;
     translations: Record<string, string>;
     timer: RunningTimer | null;

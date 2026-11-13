@@ -6,6 +6,7 @@ use App\Models\Document;
 use App\Models\Project;
 use App\Models\TaskList;
 use App\Models\User;
+use App\Support\Branding;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -64,6 +65,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'branding' => fn () => ['name' => Branding::name(), 'logoUrl' => Branding::logoUrl()],
             'auth' => [
                 'user' => $user,
             ],
