@@ -43,7 +43,8 @@ class StatusController extends Controller
 
             foreach ($list->statuses()->whereNotIn('id', $kept->pluck('id'))->get() as $removed) {
                 $replacement = $kept->firstWhere('is_done', $removed->is_done);
-                $list->tasks()->where('status_id', $removed->id)->update(['status_id' => $replacement->id]);
+                // Deleted tasks too, so they can still be restored.
+                $list->tasks()->withTrashed()->where('status_id', $removed->id)->update(['status_id' => $replacement->id]);
                 $removed->delete();
             }
 

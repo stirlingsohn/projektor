@@ -9,6 +9,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskDependencyController;
+use App\Http\Controllers\TaskHistoryController;
 use App\Http\Controllers\TaskListController;
 use App\Http\Controllers\TimeEntryController;
 use App\Support\MyTasks;
@@ -28,6 +29,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('memberships', MemberController::class)->only(['update', 'destroy']);
     Route::post('invitations/{invitation}/resend', [InvitationController::class, 'resend'])->name('invitations.resend');
     Route::delete('invitations/{invitation}', [InvitationController::class, 'destroy'])->name('invitations.destroy');
+    Route::post('lists/{list}/undo', [TaskHistoryController::class, 'undo'])->name('lists.undo');
+    Route::post('lists/{list}/redo', [TaskHistoryController::class, 'redo'])->name('lists.redo');
     Route::post('tasks/{task}/comments', [CommentController::class, 'store'])->name('tasks.comments.store');
     Route::resource('comments', CommentController::class)->only(['update', 'destroy']);
 

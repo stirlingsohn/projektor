@@ -62,10 +62,28 @@ const saveAssignees = (ids: number[]) =>
     props.task &&
     router.patch(route('tasks.update', props.task.id), { assignee_ids: ids }, { preserveScroll: true, preserveState: true, async: true });
 
-// Dates can also change on the server when a task this one depends on moves.
+// Fields can also change on the server, e.g. when a task this one depends
+// on moves or a change is undone. Only changed values are taken over, so
+// whatever is being typed stays.
 watch(
     () => [props.task?.start_date, props.task?.due_date],
     ([start, due]) => Object.assign(fields.value, { start_date: start ?? '', due_date: due ?? '' }),
+);
+watch(
+    () => props.task?.title,
+    (title) => title !== undefined && (fields.value.title = title),
+);
+watch(
+    () => props.task?.description,
+    (description) => description !== undefined && (fields.value.description = description ?? ''),
+);
+watch(
+    () => props.task?.status_id,
+    (statusId) => statusId !== undefined && (fields.value.status_id = statusId),
+);
+watch(
+    () => props.task?.assignee_ids,
+    (ids) => ids && (assigneeIds.value = [...ids]),
 );
 
 const statusOptions = computed(() => props.statuses.map((status) => ({ value: status.id, label: status.name, color: status.color })));

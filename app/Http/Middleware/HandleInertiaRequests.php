@@ -83,6 +83,8 @@ class HandleInertiaRequests extends Middleware
                     ->get(['id', 'project_id', 'title'])
                 : [],
             'maxUploadMb' => config('projektor.max_upload_mb'),
+            // A short notice after an action, optionally with an undo or redo button for a list.
+            'toast' => fn () => $request->session()->get('toast'),
             'lists' => fn () => $user
                 ? TaskList::visibleTo($user)
                     ->orderBy('position')

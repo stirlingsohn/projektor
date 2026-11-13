@@ -10,3 +10,5 @@ Artisan::command('inspire', function () {
 
 Schedule::command('projektor:send-digests daily')->dailyAt('07:00');
 Schedule::command('projektor:send-digests weekly')->mondays()->at('07:00');
+// Deleted tasks and old undo steps are removed for good after 30 days.
+Schedule::command('model:prune')->dailyAt('03:00');

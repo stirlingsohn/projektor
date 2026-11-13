@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\Support\TaskHistory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -25,7 +25,7 @@ class TaskDependencyController extends Controller
                 'required',
                 'integer',
                 Rule::notIn([$task->id]),
-                Rule::exists('tasks', 'id')->where('task_list_id', $task->task_list_id),
+                Rule::exists('tasks', 'id')->where('task_list_id', $task->task_list_id)->whereNull('deleted_at'),
             ],
         ])['depends_on_id'];
 
@@ -36,7 +36,7 @@ class TaskDependencyController extends Controller
             ]);
         }
 
-        DB::transaction(function () use ($task, $dependsOn) {
+        TaskHistory::record($request->user(), $task->taskList, __('Dependency added'), function () use ($task, $dependsOn) {
             $task->dependencies()->syncWithoutDetaching([$dependsOn->id]);
             $dependsOn->pushDependents();
         });
@@ -44,11 +44,11 @@ class TaskDependencyController extends Controller
         return back();
     }
 
-    public function destroy(Task $task, Task $dependsOn): RedirectResponse
+    public function destroy(Request $request, Task $task, Task $dependsOn): RedirectResponse
     {
         Gate::authorize('editTasks', $task->taskList);
 
-        $task->dependencies()->detach($dependsOn->id);
+        TaskHistory::record($request->user(), $task->taskList, __('Dependency removed'), fn () => $task->dependencies()->detach($dependsOn->id));
 
         return back();
     }

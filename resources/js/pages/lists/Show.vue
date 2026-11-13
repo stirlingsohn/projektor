@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { modifierKey, redo, undo, useHistoryShortcuts } from '@/lib/history';
 import { t } from '@/lib/i18n';
 import { providePeople } from '@/lib/people';
 import { editList, expandProjects } from '@/lib/projects';
@@ -16,7 +17,7 @@ import { formatDuration } from '@/lib/time';
 import type { Attachment, BreadcrumbItem, Comment, ListSummary, Person, Sharing, Status, Task, TimeEntry } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { useStorage } from '@vueuse/core';
-import { Clock, Columns3, GanttChartSquare, List, ListChecks, MoreHorizontal, Pencil, Trash2, Users } from 'lucide-vue-next';
+import { Clock, Columns3, GanttChartSquare, List, ListChecks, MoreHorizontal, Pencil, Redo2, Trash2, Undo2, Users } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 
 const props = defineProps<{
@@ -31,10 +32,16 @@ const props = defineProps<{
     comments: Comment[];
     can: { manage: boolean; editTasks: boolean; comment: boolean };
     sharing: Sharing | null;
+    /** Names of the steps undo and redo would take, for the current user. */
+    history: { undo: string | null; redo: string | null };
 }>();
 
 const canEdit = computed(() => props.can.editTasks);
 providePeople(() => props.people);
+useHistoryShortcuts(
+    () => props.list.id,
+    () => canEdit.value,
+);
 const shareOpen = ref(false);
 
 const breadcrumbs = computed<BreadcrumbItem[]>(() => [
@@ -109,6 +116,29 @@ const deleteList = () => router.delete(route('lists.destroy', props.list.id));
                             <component :is="option.icon" class="size-4" />
                             {{ option.label }}
                         </button>
+                    </div>
+
+                    <div v-if="canEdit" class="flex">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            :disabled="!history.undo"
+                            :title="history.undo ? `${$t('Undo: :change', { change: history.undo })} (${modifierKey}Z)` : $t('Nothing to undo')"
+                            :aria-label="$t('Undo')"
+                            @click="undo(list.id)"
+                        >
+                            <Undo2 class="size-4" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            :disabled="!history.redo"
+                            :title="history.redo ? `${$t('Redo: :change', { change: history.redo })} (${modifierKey}⇧Z)` : $t('Nothing to redo')"
+                            :aria-label="$t('Redo')"
+                            @click="redo(list.id)"
+                        >
+                            <Redo2 class="size-4" />
+                        </Button>
                     </div>
 
                     <Button v-if="sharing" variant="outline" size="sm" @click="shareOpen = true">

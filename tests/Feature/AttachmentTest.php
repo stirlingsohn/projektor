@@ -110,6 +110,8 @@ class AttachmentTest extends TestCase
         $attachment = Attachment::factory()->create(['project_id' => $task->taskList->project_id, 'task_id' => $task->id]);
 
         $task->delete();
+        $this->travel(Task::KEEP_DELETED_DAYS + 1)->days();
+        $this->artisan('model:prune', ['--model' => Task::class]);
 
         $this->assertNull($attachment->fresh()->task_id);
     }

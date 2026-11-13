@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use App\Models\TaskList;
+use App\Support\TaskHistory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -23,11 +23,11 @@ class TaskController extends Controller
             'status_id' => ['nullable', Rule::exists('statuses', 'id')->where('task_list_id', $list->id)],
         ]);
 
-        $list->tasks()->create([
+        TaskHistory::record($request->user(), $list, __('Task created'), fn () => $list->tasks()->create([
             ...$attributes,
             'status_id' => $attributes['status_id'] ?? $list->statuses()->where('is_done', false)->value('id'),
-            'position' => $list->tasks()->max('position') + 1,
-        ]);
+            'position' => $list->tasks()->withTrashed()->max('position') + 1,
+        ]));
 
         return back();
     }
@@ -51,7 +51,7 @@ class TaskController extends Controller
             throw ValidationException::withMessages(['due_date' => __('The end date must not be before the start date.')]);
         }
 
-        DB::transaction(function () use ($task, $validated) {
+        TaskHistory::record($request->user(), $task->taskList, $this->label($validated), function () use ($task, $validated) {
             $datesChanged = $task->isDirty(['start_date', 'due_date']);
             $task->save();
             if (array_key_exists('assignee_ids', $validated)) {
@@ -65,13 +65,15 @@ class TaskController extends Controller
         return back();
     }
 
-    public function destroy(Task $task): RedirectResponse
+    public function destroy(Request $request, Task $task): RedirectResponse
     {
         Gate::authorize('editTasks', $task->taskList);
 
-        $task->delete();
+        TaskHistory::record($request->user(), $task->taskList, __('Task deleted'), fn () => $task->delete());
+        // A timer must not keep running on a task nobody can see.
+        $task->timeEntries()->running()->get()->each->stop();
 
-        return back();
+        return back()->with('toast', ['message' => __('Task deleted'), 'undo' => $task->task_list_id]);
     }
 
     /**
@@ -84,14 +86,15 @@ class TaskController extends Controller
     {
         Gate::authorize('editTasks', $task->taskList);
 
-        $sibling = Rule::exists('tasks', 'id')->where('task_list_id', $task->task_list_id);
+        $sibling = Rule::exists('tasks', 'id')->where('task_list_id', $task->task_list_id)->whereNull('deleted_at');
         $attributes = $request->validate([
             'status_id' => ['sometimes', 'required', Rule::exists('statuses', 'id')->where('task_list_id', $task->task_list_id)],
             'after_id' => ['nullable', 'integer', Rule::notIn([$task->id]), $sibling],
             'before_id' => ['nullable', 'integer', Rule::notIn([$task->id]), $sibling],
         ]);
 
-        DB::transaction(function () use ($task, $attributes) {
+        $label = isset($attributes['status_id']) && (int) $attributes['status_id'] !== $task->status_id ? __('Status changed') : __('Task moved');
+        TaskHistory::record($request->user(), $task->taskList, $label, function () use ($task, $attributes) {
             $task->update(Arr::only($attributes, 'status_id'));
 
             $ids = $task->taskList->tasks()->whereKeyNot($task->id)->pluck('id');
@@ -111,5 +114,21 @@ class TaskController extends Controller
         });
 
         return back();
+    }
+
+    /**
+     * A name for an edit, shown next to the undo button.
+     *
+     * @param  array<string, mixed>  $validated
+     */
+    private function label(array $validated): string
+    {
+        return match (true) {
+            array_key_exists('status_id', $validated) => __('Status changed'),
+            array_key_exists('start_date', $validated), array_key_exists('due_date', $validated) => __('Dates changed'),
+            array_key_exists('assignee_ids', $validated) => __('Assignees changed'),
+            array_key_exists('description', $validated) => __('Description changed'),
+            default => __('Task renamed'),
+        };
     }
 }

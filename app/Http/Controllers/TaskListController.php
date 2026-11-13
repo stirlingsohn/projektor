@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\TaskList;
 use App\Models\TimeEntry;
 use App\Support\Sharing;
+use App\Support\TaskHistory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -42,6 +43,10 @@ class TaskListController extends Controller
                 'comment' => $user->can('comment', $list),
             ],
             'sharing' => $user->can('update', $list) ? Sharing::of($list) : null,
+            'history' => [
+                'undo' => TaskHistory::undoable($user, $list)?->label,
+                'redo' => TaskHistory::redoable($user, $list)?->label,
+            ],
             'timeEntries' => $showsTime
                 ? TimeEntry::finished()->whereIn('task_id', $tasks->modelKeys())->with('user:id,name')->latest('started_at')->get()->map->toView()
                 : [],

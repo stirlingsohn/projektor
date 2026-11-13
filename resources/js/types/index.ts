@@ -157,6 +157,7 @@ export interface SharedData {
     lists: ListSummary[];
     documents: DocumentSummary[];
     maxUploadMb: number;
+    toast: { message: string; undo?: number; redo?: number } | null;
     ziggy: {
         location: string;
         url: string;

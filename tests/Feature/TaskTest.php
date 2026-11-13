@@ -123,7 +123,8 @@ class TaskTest extends TestCase
 
         $this->actingAs(User::factory()->create())->delete(route('tasks.destroy', $task));
 
-        $this->assertModelMissing($task);
+        // Kept for a while so that deleting can be undone.
+        $this->assertSoftDeleted($task);
     }
 
     public function test_clients_cannot_edit_tasks()

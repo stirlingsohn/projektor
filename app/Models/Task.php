@@ -3,17 +3,23 @@
 namespace App\Models;
 
 use Database\Factories\TaskFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
 class Task extends Model
 {
     /** @use HasFactory<TaskFactory> */
-    use HasFactory;
+    use HasFactory, Prunable, SoftDeletes;
+
+    /** Deleted tasks are kept this long, so that deleting can be undone. */
+    public const KEEP_DELETED_DAYS = 30;
 
     /**
      * @var list<string>
@@ -94,6 +100,14 @@ class Task extends Model
     }
 
     /**
+     * @return Builder<static>
+     */
+    public function prunable(): Builder
+    {
+        return static::onlyTrashed()->where('deleted_at', '<', now()->subDays(self::KEEP_DELETED_DAYS));
+    }
+
+    /**
      * Whether this task directly or indirectly depends on the given task.
      */
     public function dependsOn(Task $task): bool
@@ -103,7 +117,11 @@ class Task extends Model
 
         while ($ids) {
             $visited = [...$visited, ...$ids];
-            $ids = array_diff(DB::table('task_dependencies')->whereIn('task_id', $ids)->pluck('depends_on_id')->all(), $visited);
+            $ids = array_diff(DB::table('task_dependencies')
+                ->join('tasks', 'tasks.id', '=', 'task_dependencies.depends_on_id')
+                ->whereNull('tasks.deleted_at')
+                ->whereIn('task_id', $ids)
+                ->pluck('depends_on_id')->all(), $visited);
             if (in_array($task->id, $ids)) {
                 return true;
             }
