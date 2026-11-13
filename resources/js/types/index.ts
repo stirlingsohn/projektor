@@ -30,6 +30,22 @@ export interface ListSummary {
     name: string;
 }
 
+/** A list as named on the project page, with its subproject when it lives in one. */
+export interface ListLabel {
+    id: number;
+    name: string;
+    project: string | null;
+}
+
+export interface ProjectDashboard {
+    summary: { open: number; overdue: number; done: number; total: number };
+    /** Progress of the project's own lists, keyed by list id. */
+    listStats: Record<number, { total: number; done: number; overdue: number; next_due: string | null }>;
+    upcoming: { id: number; title: string; due_date: string; status: { name: string; color: string }; list: ListLabel }[];
+    /** `null` when the viewer may not see the time. */
+    time: { total: number; week: number; lists: (ListLabel & { seconds: number })[] } | null;
+}
+
 export interface DocumentSummary {
     id: number;
     project_id: number;

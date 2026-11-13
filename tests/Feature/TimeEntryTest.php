@@ -121,7 +121,7 @@ class TimeEntryTest extends TestCase
 
         $this->actingAs(User::factory()->create())
             ->get(route('projects.show', $project))
-            ->assertInertia(fn (AssertableInertia $page) => $page->where('trackedSeconds', 900));
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('time.total', 900));
     }
 
     public function test_time_is_hidden_from_clients_unless_the_project_shows_it()

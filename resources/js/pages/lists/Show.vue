@@ -55,8 +55,18 @@ const view = computed({
     set: (value) => (views.value = { ...views.value, [props.list.id]: value }),
 });
 
-const selectedTaskId = ref<number | null>(null);
+/** `?task=…` opens a task right away, e.g. from the project page. */
+const linkedTaskId = Number(new URLSearchParams(window.location.search).get('task')) || null;
+const selectedTaskId = ref<number | null>(linkedTaskId);
 const selectedTask = computed(() => props.tasks.find((task) => task.id === selectedTaskId.value) ?? null);
+const closeTask = () => {
+    selectedTaskId.value = null;
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('task')) {
+        url.searchParams.delete('task');
+        window.history.replaceState(window.history.state, '', url);
+    }
+};
 
 const trackedSeconds = computed(() => props.tasks.reduce((sum, task) => sum + (task.tracked_seconds ?? 0), 0));
 
@@ -166,7 +176,7 @@ const deleteList = () => router.delete(route('lists.destroy', props.list.id));
             :project-id="list.project_id"
             :comments="comments"
             :can-comment="can.comment"
-            @close="selectedTaskId = null"
+            @close="closeTask"
         />
         <ShareDialog v-if="sharing" v-model:open="shareOpen" :target="{ type: 'list', id: list.id, name: list.name }" :sharing="sharing" />
         <StatusSettingsDialog v-model:open="statusSettingsOpen" :list-id="list.id" :statuses="statuses" />

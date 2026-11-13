@@ -130,14 +130,6 @@ class Project extends Model
         return $user->isOwner() || $this->client_can_see_time;
     }
 
-    /**
-     * Seconds tracked on finished entries in this project and its subprojects.
-     */
-    public function trackedSeconds(): int
-    {
-        return (int) TimeEntry::finished()->inProjects($this->descendantIds()->push($this->id))->sum('seconds');
-    }
-
     public function descendantIds(): Collection
     {
         $ids = collect();

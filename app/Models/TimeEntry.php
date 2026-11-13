@@ -68,14 +68,14 @@ class TimeEntry extends Model
     }
 
     /**
-     * Entries on tasks in the given projects.
+     * Entries on tasks in the given lists.
      *
-     * @param  iterable<int>  $projectIds
+     * @param  iterable<int>  $listIds
      */
     #[Scope]
-    protected function inProjects(Builder $query, iterable $projectIds): void
+    protected function inLists(Builder $query, iterable $listIds): void
     {
-        $query->whereHas('task.taskList', fn (Builder $lists) => $lists->whereIn('project_id', $projectIds));
+        $query->whereHas('task', fn (Builder $tasks) => $tasks->whereIn('task_list_id', $listIds));
     }
 
     public function stop(): void

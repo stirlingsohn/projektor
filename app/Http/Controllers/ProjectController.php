@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Attachment;
 use App\Models\Project;
+use App\Support\ProjectDashboard;
 use App\Support\Sharing;
 use Closure;
 use Illuminate\Http\RedirectResponse;
@@ -28,7 +29,7 @@ class ProjectController extends Controller
             'ancestors' => $project->ancestors()->filter(fn (Project $ancestor) => $user->can('view', $ancestor))->values()->map->only('id', 'name'),
             'children' => $project->children()->visibleTo($user)->get()->map->only('id', 'name', 'color'),
             'attachments' => $viewContents ? $project->attachments()->with('task:id,title')->get()->map->toView() : [],
-            'trackedSeconds' => $viewContents && $project->showsTimeTo($user) ? $project->trackedSeconds() : null,
+            ...(new ProjectDashboard($project, $user))->toArray(showsTime: $viewContents && $project->showsTimeTo($user)),
             'can' => [
                 'manage' => $user->can('update', $project),
                 'contribute' => $user->can('contribute', $project),
