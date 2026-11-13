@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import AssigneeStack from '@/components/tasks/AssigneeStack.vue';
 import DueDate from '@/components/tasks/DueDate.vue';
-import StatusBadge from '@/components/tasks/StatusBadge.vue';
+import StatusCircle from '@/components/tasks/StatusCircle.vue';
 import TrackedTime from '@/components/tasks/TrackedTime.vue';
 import { LIST_COLUMNS } from '@/lib/listColumns';
 import type { Status, Task } from '@/types';
-import { Check, GripVertical, MessageSquare } from 'lucide-vue-next';
-defineProps<{
+import { GripVertical, MessageSquare } from 'lucide-vue-next';
+import { computed } from 'vue';
+
+const props = defineProps<{
     task: Task;
     status: Status;
     statuses: Status[];
@@ -21,6 +23,9 @@ defineEmits<{
     open: [];
     changeStatus: [statusId: number];
 }>();
+
+/** Only statuses between the first one and done get a label; open tasks stay quiet. */
+const inBetween = computed(() => !props.status.is_done && props.status.id !== props.statuses[0]?.id);
 </script>
 
 <template>
@@ -36,24 +41,17 @@ defineEmits<{
             <GripVertical class="size-4" />
         </span>
 
-        <button
-            type="button"
-            class="group/check flex size-[18px] shrink-0 items-center justify-center rounded-full border-2 transition disabled:cursor-default"
-            :style="{ borderColor: status.color, backgroundColor: status.is_done ? status.color : undefined }"
-            :aria-label="status.is_done ? $t('Mark as open') : $t('Mark as done')"
-            :aria-pressed="status.is_done"
+        <StatusCircle
+            :status="status"
+            :statuses="statuses"
             :disabled="!canEdit"
-            @click.stop="$emit('toggle')"
-        >
-            <Check
-                class="size-3"
-                :class="status.is_done ? 'text-white' : 'opacity-0 group-hover/check:opacity-60'"
-                :style="status.is_done ? undefined : { color: status.color }"
-            />
-        </button>
+            @toggle="$emit('toggle')"
+            @change="(id) => $emit('changeStatus', id)"
+        />
 
-        <span class="min-w-0 flex-1 truncate text-sm" :class="{ 'text-muted-foreground line-through': status.is_done }">
-            {{ task.title }}
+        <span class="flex min-w-0 flex-1 items-baseline gap-2">
+            <span class="truncate text-sm" :class="{ 'text-muted-foreground line-through': status.is_done }">{{ task.title }}</span>
+            <span v-if="inBetween" class="shrink-0 text-xs font-medium" :style="{ color: status.color }">{{ status.name }}</span>
         </span>
         <span v-if="columns.comments" class="shrink-0" :class="LIST_COLUMNS.comments">
             <span v-if="task.comments_count" class="inline-flex items-center gap-1 text-xs text-muted-foreground" :title="$t('Comments')">
@@ -64,8 +62,5 @@ defineEmits<{
         <span v-if="columns.assignees" class="shrink-0" :class="LIST_COLUMNS.assignees"><AssigneeStack :ids="task.assignee_ids" /></span>
         <span v-if="columns.time" class="shrink-0" :class="LIST_COLUMNS.time"><TrackedTime :task="task" compact /></span>
         <span class="shrink-0" :class="LIST_COLUMNS.date"><DueDate :task="task" :done="status.is_done" plain /></span>
-        <span class="shrink-0" :class="LIST_COLUMNS.status">
-            <StatusBadge :status="status" :statuses="statuses" :disabled="!canEdit" @change="(id) => $emit('changeStatus', id)" />
-        </span>
     </li>
 </template>

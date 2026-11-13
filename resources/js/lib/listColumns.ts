@@ -7,5 +7,4 @@ export const LIST_COLUMNS = {
     assignees: 'hidden w-20 justify-end sm:flex',
     time: 'hidden w-16 justify-end sm:flex',
     date: 'flex w-24 sm:w-32',
-    status: 'flex w-28 justify-end',
 } as const;

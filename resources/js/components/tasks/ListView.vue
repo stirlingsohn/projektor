@@ -41,13 +41,14 @@ watch(
 
 const showDone = ref(false);
 
-type SortKey = 'date' | 'status';
+type SortKey = 'date';
 type Sort = { key: SortKey; direction: 1 | -1 } | null;
 
 /** The sort chosen per list, remembered in this browser; `null` is the manual order. */
 const sorts = useStorage<Record<number, Sort>>('projektor.list-sorts', {});
 const sort = computed({
-    get: () => sorts.value[props.listId] ?? null,
+    // Older sorts by status are no longer offered.
+    get: () => (sorts.value[props.listId]?.key === 'date' ? sorts.value[props.listId] : null),
     set: (value) => (sorts.value = { ...sorts.value, [props.listId]: value }),
 });
 
@@ -57,9 +58,7 @@ const toggleSort = (key: SortKey) => {
     sort.value = current?.key !== key ? { key, direction: 1 } : current.direction === 1 ? { key, direction: -1 } : null;
 };
 
-const statusIndex = computed(() => new Map(props.statuses.map((status, index) => [status.id, index])));
-const sortValue = (task: Task, key: SortKey): string | number | null =>
-    key === 'date' ? (task.start_date ?? task.due_date) : (statusIndex.value.get(task.status_id) ?? 0);
+const sortValue = (task: Task): string | null => task.start_date ?? task.due_date;
 
 /** Tasks without a value always go last; ties keep the manual order. */
 const sorted = (tasks: Task[]) => {
@@ -67,7 +66,7 @@ const sorted = (tasks: Task[]) => {
     if (!current) return tasks;
 
     return [...tasks].sort((a, b) => {
-        const [x, y] = [sortValue(a, current.key), sortValue(b, current.key)];
+        const [x, y] = [sortValue(a), sortValue(b)];
         if (x === y) return 0;
         if (x === null) return 1;
         if (y === null) return -1;
@@ -91,7 +90,6 @@ const columns = computed(() => [
     ...(visibleColumns.value.assignees ? [{ label: t('Assigned to'), class: LIST_COLUMNS.assignees }] : []),
     ...(visibleColumns.value.time ? [{ label: t('Time'), class: LIST_COLUMNS.time }] : []),
     { key: 'date' as const, label: t('Date'), class: LIST_COLUMNS.date },
-    { key: 'status' as const, label: t('Status'), class: LIST_COLUMNS.status },
 ]);
 
 const setStatus = (task: Task, statusId: number) => {
@@ -126,7 +124,7 @@ useSortableList(useTemplateRef<HTMLElement>('openList'), openTasks, {
                 v-if="tasks.length"
                 class="flex items-center gap-3 border-b border-sidebar-border/70 pb-2 pl-6 pr-2 text-xs font-medium text-muted-foreground"
             >
-                <span class="flex-1 pl-[30px]">{{ $t('Task') }}</span>
+                <span class="flex-1 pl-[34px]">{{ $t('Task') }}</span>
                 <span v-for="column in columns" :key="column.label" class="shrink-0" :class="column.class">
                     <button
                         v-if="column.key"
