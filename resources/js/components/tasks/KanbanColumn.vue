@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AssigneeStack from '@/components/tasks/AssigneeStack.vue';
 import DueDate from '@/components/tasks/DueDate.vue';
 import TaskQuickAdd from '@/components/tasks/TaskQuickAdd.vue';
 import TrackedTime from '@/components/tasks/TrackedTime.vue';
@@ -74,6 +75,7 @@ if (props.canEdit) {
                         <MessageSquare class="size-3.5" />
                         {{ task.comments_count }}
                     </span>
+                    <AssigneeStack :ids="task.assignee_ids" class="ml-auto" />
                 </div>
             </li>
         </ul>

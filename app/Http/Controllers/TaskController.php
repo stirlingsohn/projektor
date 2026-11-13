@@ -36,21 +36,27 @@ class TaskController extends Controller
     {
         Gate::authorize('editTasks', $task->taskList);
 
-        $task->fill($request->validate([
+        $validated = $request->validate([
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string', 'max:65535'],
             'status_id' => ['sometimes', 'required', Rule::exists('statuses', 'id')->where('task_list_id', $task->task_list_id)],
             'start_date' => ['sometimes', 'nullable', 'date'],
             'due_date' => ['sometimes', 'nullable', 'date'],
-        ]));
+            'assignee_ids' => ['sometimes', 'array'],
+            'assignee_ids.*' => ['integer', Rule::in($task->taskList->people()->modelKeys())],
+        ]);
+        $task->fill(Arr::except($validated, 'assignee_ids'));
 
         if ($task->start_date && $task->due_date?->lt($task->start_date)) {
             throw ValidationException::withMessages(['due_date' => __('The end date must not be before the start date.')]);
         }
 
-        DB::transaction(function () use ($task) {
+        DB::transaction(function () use ($task, $validated) {
             $datesChanged = $task->isDirty(['start_date', 'due_date']);
             $task->save();
+            if (array_key_exists('assignee_ids', $validated)) {
+                $task->assignees()->sync($validated['assignee_ids']);
+            }
             if ($datesChanged) {
                 $task->pushDependents();
             }

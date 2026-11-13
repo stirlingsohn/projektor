@@ -10,9 +10,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { t } from '@/lib/i18n';
+import { providePeople } from '@/lib/people';
 import { editList, expandProjects } from '@/lib/projects';
 import { formatDuration } from '@/lib/time';
-import type { Attachment, BreadcrumbItem, Comment, ListSummary, Sharing, Status, Task, TimeEntry } from '@/types';
+import type { Attachment, BreadcrumbItem, Comment, ListSummary, Person, Sharing, Status, Task, TimeEntry } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { useStorage } from '@vueuse/core';
 import { Clock, Columns3, GanttChartSquare, List, ListChecks, MoreHorizontal, Pencil, Trash2, Users } from 'lucide-vue-next';
@@ -21,6 +22,7 @@ import { computed, onMounted, ref } from 'vue';
 const props = defineProps<{
     list: ListSummary;
     ancestors: { id: number; name: string }[];
+    people: Person[];
     statuses: Status[];
     tasks: Task[];
     showsTime: boolean;
@@ -32,6 +34,7 @@ const props = defineProps<{
 }>();
 
 const canEdit = computed(() => props.can.editTasks);
+providePeople(() => props.people);
 const shareOpen = ref(false);
 
 const breadcrumbs = computed<BreadcrumbItem[]>(() => [

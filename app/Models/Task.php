@@ -157,6 +157,16 @@ class Task extends Model
     /**
      * @return HasMany<Comment, $this>
      */
+    /**
+     * The people responsible for the task.
+     *
+     * @return BelongsToMany<User, $this>
+     */
+    public function assignees(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class);
+    }
+
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class)->oldest();
@@ -173,6 +183,7 @@ class Task extends Model
             'due_date' => $this->due_date?->toDateString(),
             'completed_at' => $this->completed_at?->toJSON(),
             'depends_on' => $this->dependencies->pluck('id'),
+            'assignee_ids' => $this->assignees->pluck('id'),
             // Only present when loaded with `withSum`, i.e. when the viewer may see time.
             'comments_count' => (int) ($this->comments_count ?? 0),
             'tracked_seconds' => array_key_exists('tracked_seconds', $this->getAttributes()) ? (int) $this->tracked_seconds : null,

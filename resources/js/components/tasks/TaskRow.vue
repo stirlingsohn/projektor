@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AssigneeStack from '@/components/tasks/AssigneeStack.vue';
 import DueDate from '@/components/tasks/DueDate.vue';
 import StatusBadge from '@/components/tasks/StatusBadge.vue';
 import TrackedTime from '@/components/tasks/TrackedTime.vue';
@@ -57,6 +58,7 @@ defineEmits<{
             {{ task.comments_count }}
         </span>
 
+        <AssigneeStack :ids="task.assignee_ids" />
         <span v-if="showsTime" class="hidden w-20 shrink-0 justify-end sm:flex"><TrackedTime :task="task" /></span>
         <span class="flex w-24 shrink-0 sm:w-36"><DueDate :task="task" :done="status.is_done" /></span>
         <span class="flex w-28 shrink-0 justify-end">

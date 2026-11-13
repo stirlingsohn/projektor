@@ -3,6 +3,7 @@ import DateField from '@/components/DateField.vue';
 import AttachmentList from '@/components/files/AttachmentList.vue';
 import InputError from '@/components/InputError.vue';
 import SelectMenu from '@/components/SelectMenu.vue';
+import AssigneePicker from '@/components/tasks/AssigneePicker.vue';
 import TaskComments from '@/components/tasks/TaskComments.vue';
 import TaskTimeSection from '@/components/tasks/TaskTimeSection.vue';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ const emit = defineEmits<{
 }>();
 
 const fields = ref({ title: '', description: '', status_id: 0, start_date: '', due_date: '' });
+const assigneeIds = ref<number[]>([]);
 const errors = ref<Record<string, string>>({});
 
 // Only reset the fields when another task is opened, so that responses to
@@ -51,9 +53,14 @@ watch(
             start_date: task.start_date ?? '',
             due_date: task.due_date ?? '',
         };
+        assigneeIds.value = [...task.assignee_ids];
     },
     { immediate: true },
 );
+
+const saveAssignees = (ids: number[]) =>
+    props.task &&
+    router.patch(route('tasks.update', props.task.id), { assignee_ids: ids }, { preserveScroll: true, preserveState: true, async: true });
 
 // Dates can also change on the server when a task this one depends on moves.
 watch(
@@ -137,6 +144,9 @@ const destroy = () => {
             <div class="grid grid-cols-[7rem_1fr] items-center gap-x-4 gap-y-3 text-sm">
                 <Label for="task-status">{{ $t('Status') }}</Label>
                 <SelectMenu id="task-status" v-model="fields.status_id" :options="statusOptions" :disabled="!canEdit" @change="save('status_id')" />
+
+                <Label for="task-assignees">{{ $t('Assigned to') }}</Label>
+                <AssigneePicker id="task-assignees" v-model="assigneeIds" :disabled="!canEdit" @change="saveAssignees" />
 
                 <Label for="task-start">{{ $t('Date range') }}</Label>
                 <div>

@@ -23,13 +23,14 @@ class TaskListController extends Controller
         $project = $list->project;
         $showsTime = $project->showsTimeTo($request->user());
         $user = $request->user();
-        $tasks = $list->tasks()->with('dependencies:id')->withCount('comments')
+        $tasks = $list->tasks()->with('dependencies:id', 'assignees:id')->withCount('comments')
             ->when($showsTime, fn ($query) => $query->withSum(['timeEntries as tracked_seconds' => fn ($entries) => $entries->finished()], 'seconds'))
             ->get();
 
         return Inertia::render('lists/Show', [
             'list' => $list->only('id', 'project_id', 'name'),
             'ancestors' => $project->ancestors()->push($project)->filter(fn (Project $ancestor) => $user->can('view', $ancestor))->values()->map->only('id', 'name'),
+            'people' => $list->people()->map->only('id', 'name', 'avatar'),
             'statuses' => $list->statuses->map->only('id', 'name', 'color', 'is_done'),
             'tasks' => $tasks->map->toView(),
             'showsTime' => $showsTime,

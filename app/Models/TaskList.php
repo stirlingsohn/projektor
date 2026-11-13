@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use Database\Factories\TaskListFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 /**
  * A to-do list inside a project, with its own configurable statuses.
@@ -60,6 +62,24 @@ class TaskList extends Model
                 ]);
             }
         });
+    }
+
+    /**
+     * Everyone who can open the list: the owner and the people it or one of
+     * its projects is shared with. Tasks can be assigned to them.
+     *
+     * @return Collection<int, User>
+     */
+    public function people(): Collection
+    {
+        $projectIds = $this->project->ancestors()->push($this->project)->pluck('id');
+
+        return User::where('role', UserRole::Owner)
+            ->orWhereHas('memberships', fn (Builder $memberships) => $memberships
+                ->where('task_list_id', $this->id)
+                ->orWhereIn('project_id', $projectIds))
+            ->orderBy('name')
+            ->get(['id', 'name', 'avatar_path', 'role']);
     }
 
     /**

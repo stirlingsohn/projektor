@@ -92,6 +92,13 @@ export interface Status {
     is_done: boolean;
 }
 
+/** Someone who can open a list and be assigned to its tasks. */
+export interface Person {
+    id: number;
+    name: string;
+    avatar: string | null;
+}
+
 export interface Task {
     id: number;
     status_id: number;
@@ -102,6 +109,8 @@ export interface Task {
     completed_at: string | null;
     /** IDs of the tasks that must be finished before this one can start. */
     depends_on: number[];
+    /** IDs of the people responsible for the task. */
+    assignee_ids: number[];
     /** Seconds on finished time entries; `null` when the viewer may not see time. */
     tracked_seconds: number | null;
     comments_count: number;
