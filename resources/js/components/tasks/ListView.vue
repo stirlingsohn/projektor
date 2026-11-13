@@ -2,11 +2,13 @@
 import TaskQuickAdd from '@/components/tasks/TaskQuickAdd.vue';
 import TaskRow from '@/components/tasks/TaskRow.vue';
 import { t } from '@/lib/i18n';
+import { LIST_COLUMNS } from '@/lib/listColumns';
+import { usePeople } from '@/lib/people';
 import { useSortableList } from '@/lib/sortable';
 import { moveTask, updateTask } from '@/lib/tasks';
 import type { Status, Task } from '@/types';
 import { useStorage } from '@vueuse/core';
-import { ArrowDown, ArrowUp, ChevronRight, ChevronsUpDown } from 'lucide-vue-next';
+import { ArrowDown, ArrowUp, ChevronRight, ChevronsUpDown, MessageSquare } from 'lucide-vue-next';
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue';
 
 const props = defineProps<{
@@ -76,10 +78,20 @@ const sorted = (tasks: Task[]) => {
 const visibleOpenTasks = computed(() => sorted(openTasks.value));
 const visibleDoneTasks = computed(() => sorted(doneTasks.value));
 
+const people = usePeople();
+/** Optional columns only show when something in the list fills them. */
+const visibleColumns = computed(() => ({
+    comments: props.tasks.some((task) => task.comments_count > 0),
+    assignees: people.value.size > 1 || props.tasks.some((task) => task.assignee_ids.length > 0),
+    time: props.showsTime,
+}));
+
 const columns = computed(() => [
-    ...(props.showsTime ? [{ label: t('Time'), class: 'hidden w-20 justify-end sm:flex' }] : []),
-    { key: 'date' as const, label: t('Date'), class: 'flex w-24 sm:w-36' },
-    { key: 'status' as const, label: t('Status'), class: 'flex w-28 justify-end' },
+    ...(visibleColumns.value.comments ? [{ label: t('Comments'), icon: MessageSquare, class: LIST_COLUMNS.comments }] : []),
+    ...(visibleColumns.value.assignees ? [{ label: t('Assigned to'), class: LIST_COLUMNS.assignees }] : []),
+    ...(visibleColumns.value.time ? [{ label: t('Time'), class: LIST_COLUMNS.time }] : []),
+    { key: 'date' as const, label: t('Date'), class: LIST_COLUMNS.date },
+    { key: 'status' as const, label: t('Status'), class: LIST_COLUMNS.status },
 ]);
 
 const setStatus = (task: Task, statusId: number) => {
@@ -129,6 +141,7 @@ useSortableList(useTemplateRef<HTMLElement>('openList'), openTasks, {
                         <ArrowDown v-else-if="sort?.key === column.key" class="size-3.5" />
                         <ChevronsUpDown v-else class="size-3.5 opacity-50" />
                     </button>
+                    <component :is="column.icon" v-else-if="column.icon" class="size-3.5" :aria-label="column.label" />
                     <template v-else>{{ column.label }}</template>
                 </span>
             </div>
@@ -140,7 +153,7 @@ useSortableList(useTemplateRef<HTMLElement>('openList'), openTasks, {
                     :status="statusOf(task)"
                     :statuses="statuses"
                     :can-edit="canEdit"
-                    :shows-time="showsTime"
+                    :columns="visibleColumns"
                     :draggable="!sort"
                     @toggle="toggle(task)"
                     @open="$emit('open', task.id)"
@@ -169,7 +182,7 @@ useSortableList(useTemplateRef<HTMLElement>('openList'), openTasks, {
                     :status="statusOf(task)"
                     :statuses="statuses"
                     :can-edit="canEdit"
-                    :shows-time="showsTime"
+                    :columns="visibleColumns"
                     @toggle="toggle(task)"
                     @open="$emit('open', task.id)"
                     @change-status="(id) => setStatus(task, id)"

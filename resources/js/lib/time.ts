@@ -13,6 +13,13 @@ export function formatDuration(seconds: number): string {
     return t(':hours h', { hours: `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}` });
 }
 
+/** Hours and minutes like "1:50" or "0:45", rounded to minutes. */
+export function formatHours(seconds: number): string {
+    const minutes = Math.max(1, Math.round(seconds / 60));
+
+    return `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}`;
+}
+
 /** A running clock like "0:05:09". */
 export function formatClock(seconds: number): string {
     const [h, m, s] = [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, Math.floor(seconds % 60)];

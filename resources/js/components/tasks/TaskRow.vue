@@ -3,6 +3,7 @@ import AssigneeStack from '@/components/tasks/AssigneeStack.vue';
 import DueDate from '@/components/tasks/DueDate.vue';
 import StatusBadge from '@/components/tasks/StatusBadge.vue';
 import TrackedTime from '@/components/tasks/TrackedTime.vue';
+import { LIST_COLUMNS } from '@/lib/listColumns';
 import type { Status, Task } from '@/types';
 import { Check, GripVertical, MessageSquare } from 'lucide-vue-next';
 defineProps<{
@@ -11,7 +12,8 @@ defineProps<{
     statuses: Status[];
     canEdit: boolean;
     draggable?: boolean;
-    showsTime?: boolean;
+    /** Which optional columns the list shows. */
+    columns: { comments: boolean; assignees: boolean; time: boolean };
 }>();
 
 defineEmits<{
@@ -53,15 +55,16 @@ defineEmits<{
         <span class="min-w-0 flex-1 truncate text-sm" :class="{ 'text-muted-foreground line-through': status.is_done }">
             {{ task.title }}
         </span>
-        <span v-if="task.comments_count" class="inline-flex shrink-0 items-center gap-1 text-xs text-muted-foreground" :title="$t('Comments')">
-            <MessageSquare class="size-3.5" />
-            {{ task.comments_count }}
+        <span v-if="columns.comments" class="shrink-0" :class="LIST_COLUMNS.comments">
+            <span v-if="task.comments_count" class="inline-flex items-center gap-1 text-xs text-muted-foreground" :title="$t('Comments')">
+                <MessageSquare class="size-3.5" />
+                {{ task.comments_count }}
+            </span>
         </span>
-
-        <AssigneeStack :ids="task.assignee_ids" />
-        <span v-if="showsTime" class="hidden w-20 shrink-0 justify-end sm:flex"><TrackedTime :task="task" /></span>
-        <span class="flex w-24 shrink-0 sm:w-36"><DueDate :task="task" :done="status.is_done" /></span>
-        <span class="flex w-28 shrink-0 justify-end">
+        <span v-if="columns.assignees" class="shrink-0" :class="LIST_COLUMNS.assignees"><AssigneeStack :ids="task.assignee_ids" /></span>
+        <span v-if="columns.time" class="shrink-0" :class="LIST_COLUMNS.time"><TrackedTime :task="task" compact /></span>
+        <span class="shrink-0" :class="LIST_COLUMNS.date"><DueDate :task="task" :done="status.is_done" plain /></span>
+        <span class="shrink-0" :class="LIST_COLUMNS.status">
             <StatusBadge :status="status" :statuses="statuses" :disabled="!canEdit" @change="(id) => $emit('changeStatus', id)" />
         </span>
     </li>

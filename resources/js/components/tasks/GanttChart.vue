@@ -23,7 +23,7 @@ const emit = defineEmits<{
 }>();
 
 const ROW_HEIGHT = 40;
-const HEADER_HEIGHT = 56;
+const HEADER_HEIGHT = 72;
 const DAY_WIDTHS = [16, 32, 48];
 /** Days shown before the earliest and after the latest date. */
 const PADDING_BEFORE = 7;
@@ -32,6 +32,12 @@ const MIN_DAYS = 63;
 /** 1 January 1970, day 0, was a Thursday. */
 const weekday = (day: number) => (day + 4) % 7;
 const isWeekend = (day: number) => weekday(day) === 0 || weekday(day) === 6;
+/** "Mo", "Di", … in the page language; just the first letter when days are narrow. */
+const weekdayFormat = new Intl.DateTimeFormat(document.documentElement.lang || 'de-CH', { weekday: 'short', timeZone: 'UTC' });
+const weekdayLabel = (day: number, narrow: boolean) => {
+    const label = weekdayFormat.format(new Date(fromDay(day))).replace('.', '');
+    return narrow ? label.charAt(0) : label;
+};
 
 const zoom = ref(1);
 const dayWidth = computed(() => DAY_WIDTHS[zoom.value]);
@@ -333,17 +339,26 @@ watch(zoom, scrollToToday);
                                     >
                                 </div>
                             </div>
-                            <div class="flex h-7 text-[11px] text-muted-foreground">
+                            <div class="flex h-11 text-[11px] text-muted-foreground">
                                 <div
                                     v-for="day in dayList"
                                     :key="day"
-                                    class="flex shrink-0 items-center justify-center"
-                                    :class="{ 'rounded-full bg-red-500 font-semibold text-white': day === todayDay }"
+                                    class="flex shrink-0 flex-col items-center justify-center gap-0.5"
                                     :style="{ width: `${dayWidth}px` }"
                                 >
-                                    <template v-if="dayWidth >= 32 || weekday(day) === 1 || day === todayDay">{{
-                                        fromDay(day).slice(8).replace(/^0/, '')
-                                    }}</template>
+                                    <span
+                                        class="text-[10px] leading-none"
+                                        :class="{ 'opacity-50': isWeekend(day), 'font-semibold text-red-500': day === todayDay }"
+                                        >{{ weekdayLabel(day, dayWidth < 32) }}</span
+                                    >
+                                    <span
+                                        class="flex size-6 items-center justify-center rounded-full leading-none"
+                                        :class="{ 'bg-red-500 font-semibold text-white': day === todayDay }"
+                                    >
+                                        <template v-if="dayWidth >= 32 || weekday(day) === 1 || day === todayDay">{{
+                                            fromDay(day).slice(8).replace(/^0/, '')
+                                        }}</template>
+                                    </span>
                                 </div>
                             </div>
                         </div>
