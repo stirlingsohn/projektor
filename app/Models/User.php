@@ -6,6 +6,7 @@ namespace App\Models;
 use App\Enums\UserRole;
 use App\Models\Concerns\HasAccess;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -36,7 +37,13 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'avatar_path',
     ];
+
+    /**
+     * @var list<string>
+     */
+    protected $appends = ['avatar'];
 
     /**
      * Get the attributes that should be cast.
@@ -61,6 +68,16 @@ class User extends Authenticatable
     public function timeEntries(): HasMany
     {
         return $this->hasMany(TimeEntry::class);
+    }
+
+    /**
+     * The profile picture URL, versioned so a new picture shows right away.
+     */
+    protected function avatar(): Attribute
+    {
+        return Attribute::get(fn () => $this->avatar_path
+            ? route('users.avatar', ['user' => $this->id, 'v' => substr(md5($this->avatar_path), 0, 8)])
+            : null);
     }
 
     public function isOwner(): bool

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { t } from '@/lib/i18n';
 import { TransitionRoot } from '@headlessui/vue';
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { Trash2, Upload } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 import DeleteUser from '@/components/DeleteUser.vue';
 import HeadingSmall from '@/components/HeadingSmall.vue';
@@ -9,6 +11,7 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import UserAvatar from '@/components/UserAvatar.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { type BreadcrumbItem, type SharedData, type User } from '@/types';
@@ -29,12 +32,21 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const page = usePage<SharedData>();
-const user = page.props.auth.user as User;
+const user = computed(() => page.props.auth.user as User);
 
 const form = useForm({
-    name: user.name,
-    email: user.email,
+    name: user.value.name,
+    email: user.value.email,
 });
+
+const avatarInput = ref<HTMLInputElement | null>(null);
+const avatarForm = useForm<{ avatar: File | null }>({ avatar: null });
+const uploadAvatar = (event: Event) => {
+    const input = event.target as HTMLInputElement;
+    avatarForm.avatar = input.files?.[0] ?? null;
+    if (avatarForm.avatar) avatarForm.post(route('avatar.store'), { preserveScroll: true, onFinish: () => (input.value = '') });
+};
+const removeAvatar = () => router.delete(route('avatar.destroy'), { preserveScroll: true });
 
 const submit = () => {
     form.patch(route('profile.update'), {
@@ -104,6 +116,33 @@ const submit = () => {
                         </TransitionRoot>
                     </div>
                 </form>
+            </div>
+
+            <div class="flex flex-col space-y-6">
+                <HeadingSmall :title="$t('Profile picture')" :description="$t('Shown next to your comments and tasks')" />
+                <div class="flex items-center gap-4">
+                    <UserAvatar :name="user.name" :avatar="user.avatar" class="size-16 text-lg" />
+                    <div class="flex flex-wrap gap-2">
+                        <Button type="button" variant="outline" size="sm" :disabled="avatarForm.processing" @click="avatarInput?.click()">
+                            <Upload class="size-4" />
+                            {{ user.avatar ? $t('Replace picture') : $t('Upload picture') }}
+                        </Button>
+                        <Button
+                            v-if="user.avatar"
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            class="text-red-600 hover:text-red-600"
+                            @click="removeAvatar"
+                        >
+                            <Trash2 class="size-4" />
+                            {{ $t('Remove') }}
+                        </Button>
+                    </div>
+                    <input ref="avatarInput" type="file" accept=".png,.jpg,.jpeg,.webp" class="hidden" @change="uploadAvatar" />
+                </div>
+                <p class="text-xs text-muted-foreground">{{ $t('PNG, JPG or WebP, up to 10 MB. It is cropped to a square.') }}</p>
+                <InputError :message="avatarForm.errors.avatar" />
             </div>
 
             <DeleteUser />

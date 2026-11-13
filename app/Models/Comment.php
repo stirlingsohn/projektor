@@ -47,6 +47,7 @@ class Comment extends Model
             'task_id' => $this->task_id,
             'user_id' => $this->user_id,
             'user' => $this->user?->name,
+            'avatar' => $this->user?->avatar,
             'body' => $this->body,
             'created_at' => $this->created_at->toJSON(),
             'edited' => $this->updated_at->gt($this->created_at),

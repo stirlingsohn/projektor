@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import UserAvatar from '@/components/UserAvatar.vue';
 import type { Comment, SharedData } from '@/types';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { Pencil, Trash2 } from 'lucide-vue-next';
@@ -45,13 +46,6 @@ const destroy = (comment: Comment) => router.delete(route('comments.destroy', co
 
 const formatTime = (date: string) =>
     new Date(date).toLocaleString(document.documentElement.lang || 'de-CH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-const initials = (name: string | null) =>
-    (name ?? '?')
-        .split(/\s+/)
-        .map((part) => part[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase();
 </script>
 
 <template>
@@ -60,9 +54,7 @@ const initials = (name: string | null) =>
 
         <ul v-if="comments.length" class="space-y-3">
             <li v-for="comment in comments" :key="comment.id" class="group flex gap-3">
-                <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-medium">{{
-                    initials(comment.user)
-                }}</span>
+                <UserAvatar :name="comment.user" :avatar="comment.avatar" class="size-7 text-[11px]" />
                 <div class="min-w-0 flex-1">
                     <div class="flex items-baseline gap-2 text-xs">
                         <span class="font-medium">{{ comment.user ?? $t('Former member') }}</span>

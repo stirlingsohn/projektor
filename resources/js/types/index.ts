@@ -68,9 +68,9 @@ export interface Attachment {
 export type AccessLevel = 'view' | 'comment' | 'edit';
 
 export interface Sharing {
-    members: { id: number; name: string; email: string; level: AccessLevel }[];
+    members: { id: number; name: string; email: string; avatar: string | null; level: AccessLevel }[];
     /** Access that comes from a project further up. */
-    inherited: { id: number; name: string; email: string; level: AccessLevel; source: string; source_id: number }[];
+    inherited: { id: number; name: string; email: string; avatar: string | null; level: AccessLevel; source: string; source_id: number }[];
     invitations: { id: number; email: string; level: AccessLevel; expires_at: string }[];
 }
 
@@ -79,6 +79,7 @@ export interface Comment {
     task_id: number;
     user_id: number | null;
     user: string | null;
+    avatar: string | null;
     body: string;
     created_at: string;
     edited: boolean;
@@ -147,7 +148,7 @@ export interface User {
     id: number;
     name: string;
     email: string;
-    avatar?: string;
+    avatar: string | null;
     role: 'owner' | 'client';
     email_verified_at: string | null;
     created_at: string;

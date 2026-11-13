@@ -34,7 +34,7 @@ class TaskListController extends Controller
             'tasks' => $tasks->map->toView(),
             'showsTime' => $showsTime,
             'attachments' => Attachment::whereIn('task_id', $tasks->modelKeys())->latest()->get()->map->toView(),
-            'comments' => Comment::whereIn('task_id', $tasks->modelKeys())->with('user:id,name')->oldest()->get()->map->toView(),
+            'comments' => Comment::whereIn('task_id', $tasks->modelKeys())->with('user:id,name,avatar_path')->oldest()->get()->map->toView(),
             'can' => [
                 'manage' => $user->can('update', $list),
                 'editTasks' => $user->can('editTasks', $list),

@@ -4,6 +4,7 @@ import SelectMenu from '@/components/SelectMenu.vue';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import UserAvatar from '@/components/UserAvatar.vue';
 import { formatDay } from '@/lib/dates';
 import { t } from '@/lib/i18n';
 import type { AccessLevel, Sharing } from '@/types';
@@ -40,14 +41,6 @@ const remove = (membershipId: number) => router.delete(route('memberships.destro
 const resend = (invitationId: number) =>
     router.post(route('invitations.resend', invitationId), {}, { ...background, onError: (errors) => form.setError('email', errors.email) });
 const revoke = (invitationId: number) => router.delete(route('invitations.destroy', invitationId), background);
-
-const initials = (name: string) =>
-    name
-        .split(/\s+/)
-        .map((part) => part[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase();
 
 const isEmpty = computed(() => !props.sharing.members.length && !props.sharing.invitations.length && !props.sharing.inherited.length);
 </script>
@@ -90,9 +83,7 @@ const isEmpty = computed(() => !props.sharing.members.length && !props.sharing.i
 
             <ul v-if="!isEmpty" class="divide-y divide-sidebar-border/50 rounded-lg border border-sidebar-border/70 text-sm">
                 <li v-for="member in sharing.members" :key="`member-${member.id}`" class="flex items-center gap-3 px-3 py-2">
-                    <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">{{
-                        initials(member.name)
-                    }}</span>
+                    <UserAvatar :name="member.name" :avatar="member.avatar" class="size-8 text-xs" />
                     <div class="min-w-0 flex-1">
                         <p class="truncate font-medium">{{ member.name }}</p>
                         <p class="truncate text-xs text-muted-foreground">{{ member.email }}</p>
@@ -138,9 +129,7 @@ const isEmpty = computed(() => !props.sharing.members.length && !props.sharing.i
                 </li>
 
                 <li v-for="member in sharing.inherited" :key="`inherited-${member.id}`" class="flex items-center gap-3 px-3 py-2">
-                    <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">{{
-                        initials(member.name)
-                    }}</span>
+                    <UserAvatar :name="member.name" :avatar="member.avatar" class="size-8 text-xs" />
                     <div class="min-w-0 flex-1">
                         <p class="truncate font-medium">{{ member.name }}</p>
                         <p class="truncate text-xs text-muted-foreground">
