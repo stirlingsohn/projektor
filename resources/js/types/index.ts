@@ -37,6 +37,19 @@ export interface ListLabel {
     project: string | null;
 }
 
+/** An open task assigned to the viewer, as listed on the overview. */
+export interface MyTask {
+    id: number;
+    title: string;
+    start_date: string | null;
+    due_date: string | null;
+    status: { name: string; color: string };
+    list: { id: number; name: string };
+    project: { id: number; name: string; color: string };
+}
+
+export type MyTaskBucket = 'overdue' | 'today' | 'week' | 'later' | 'undated';
+
 export interface ProjectDashboard {
     summary: { open: number; overdue: number; done: number; total: number };
     /** Progress of the project's own lists, keyed by list id. */

@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import ProjectGrid from '@/components/projects/ProjectGrid.vue';
+import MyTasks from '@/components/tasks/MyTasks.vue';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { t } from '@/lib/i18n';
 import { createProject, rootProjects } from '@/lib/projects';
-import { type BreadcrumbItem, type SharedData } from '@/types';
+import { type BreadcrumbItem, type MyTask, type MyTaskBucket, type SharedData } from '@/types';
 import { Head, usePage } from '@inertiajs/vue3';
 import { FolderPlus } from 'lucide-vue-next';
 import { computed } from 'vue';
+
+defineProps<{
+    myTasks: Record<MyTaskBucket, MyTask[]>;
+}>();
 
 const page = usePage<SharedData>();
 
@@ -20,7 +25,9 @@ const roots = computed(() => rootProjects(page.props.projects));
     <Head :title="$t('Overview')" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex flex-1 flex-col gap-6 p-4 md:p-6">
+        <div class="flex flex-1 flex-col gap-8 p-4 md:p-6">
+            <MyTasks :tasks="myTasks" class="max-w-3xl" />
+
             <div class="flex items-center justify-between gap-4">
                 <h1 class="text-2xl font-semibold tracking-tight">{{ $t('Projects') }}</h1>
                 <Button v-if="page.props.auth.user.role === 'owner'" @click="createProject()">

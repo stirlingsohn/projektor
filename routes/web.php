@@ -11,6 +11,8 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskDependencyController;
 use App\Http\Controllers\TaskListController;
 use App\Http\Controllers\TimeEntryController;
+use App\Support\MyTasks;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -29,9 +31,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('tasks/{task}/comments', [CommentController::class, 'store'])->name('tasks.comments.store');
     Route::resource('comments', CommentController::class)->only(['update', 'destroy']);
 
-    Route::get('dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', fn (Request $request) => Inertia::render('Dashboard', [
+        'myTasks' => (new MyTasks($request->user()))->grouped()->map(fn ($tasks) => $tasks->map(MyTasks::toView(...))),
+    ]))->name('dashboard');
 
     Route::resource('projects', ProjectController::class)->only(['show', 'store', 'update', 'destroy']);
     Route::resource('projects.lists', TaskListController::class)->shallow()->only(['show', 'store', 'update', 'destroy']);
