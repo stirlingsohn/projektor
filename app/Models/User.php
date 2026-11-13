@@ -27,6 +27,8 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'digest_daily',
+        'digest_weekly',
     ];
 
     /**
@@ -38,6 +40,8 @@ class User extends Authenticatable
         'password',
         'remember_token',
         'avatar_path',
+        'digest_daily_sent_on',
+        'digest_weekly_sent_on',
     ];
 
     /**
@@ -56,6 +60,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'digest_daily' => 'boolean',
+            'digest_weekly' => 'boolean',
+            'digest_daily_sent_on' => 'date',
+            'digest_weekly_sent_on' => 'date',
         ];
     }
 
