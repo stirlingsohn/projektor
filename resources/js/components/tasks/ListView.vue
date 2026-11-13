@@ -102,11 +102,6 @@ const setStatus = (task: Task, statusId: number) => {
     updateTask(task, { status_id: statusId });
 };
 
-const toggle = (task: Task) => {
-    const target = props.statuses.find((status) => status.is_done !== statusOf(task).is_done);
-    if (target) setStatus(task, target.id);
-};
-
 useSortableList(useTemplateRef<HTMLElement>('openList'), openTasks, {
     onEnd: ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) =>
         oldIndex !== newIndex &&
@@ -124,7 +119,7 @@ useSortableList(useTemplateRef<HTMLElement>('openList'), openTasks, {
                 v-if="tasks.length"
                 class="flex items-center gap-3 border-b border-sidebar-border/70 pb-2 pl-6 pr-2 text-xs font-medium text-muted-foreground"
             >
-                <span class="flex-1 pl-[34px]">{{ $t('Task') }}</span>
+                <span class="flex-1 pl-[30px]">{{ $t('Task') }}</span>
                 <span v-for="column in columns" :key="column.label" class="shrink-0" :class="column.class">
                     <button
                         v-if="column.key"
@@ -153,7 +148,6 @@ useSortableList(useTemplateRef<HTMLElement>('openList'), openTasks, {
                     :can-edit="canEdit"
                     :columns="visibleColumns"
                     :draggable="!sort"
-                    @toggle="toggle(task)"
                     @open="$emit('open', task.id)"
                     @change-status="(id) => setStatus(task, id)"
                 />
@@ -181,7 +175,6 @@ useSortableList(useTemplateRef<HTMLElement>('openList'), openTasks, {
                     :statuses="statuses"
                     :can-edit="canEdit"
                     :columns="visibleColumns"
-                    @toggle="toggle(task)"
                     @open="$emit('open', task.id)"
                     @change-status="(id) => setStatus(task, id)"
                 />

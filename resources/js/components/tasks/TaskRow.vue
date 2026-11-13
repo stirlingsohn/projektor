@@ -19,7 +19,6 @@ const props = defineProps<{
 }>();
 
 defineEmits<{
-    toggle: [];
     open: [];
     changeStatus: [statusId: number];
 }>();
@@ -41,13 +40,7 @@ const inBetween = computed(() => !props.status.is_done && props.status.id !== pr
             <GripVertical class="size-4" />
         </span>
 
-        <StatusCircle
-            :status="status"
-            :statuses="statuses"
-            :disabled="!canEdit"
-            @toggle="$emit('toggle')"
-            @change="(id) => $emit('changeStatus', id)"
-        />
+        <StatusCircle :status="status" :statuses="statuses" :disabled="!canEdit" @change="(id) => $emit('changeStatus', id)" />
 
         <span class="flex min-w-0 flex-1 items-baseline gap-2">
             <span class="truncate text-sm" :class="{ 'text-muted-foreground line-through': status.is_done }">{{ task.title }}</span>
